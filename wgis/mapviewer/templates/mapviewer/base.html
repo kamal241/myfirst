@@ -88,11 +88,11 @@
             <button class="leftmenu" type="button">></button>
             <button class="rightmenu" type="button">></button>
             -->
-            <span class="leftmenu"   onclick="openNav()">&#9776; </span>
-            <span class="rightmenu"   onclick="openNav()"> &#9776;</span>
+            <span id="layersmenu" class="leftmenu"   onclick="openNav()">&#9776; </span>
+            <span id="chartsmenu" class="rightmenu"   onclick="openNav()"> &#9776;</span>
             <!--<a href="#" class="rightmenu btn btn-danger" id="opener"><i class="glyphicon glyphicon-align-justify"></i></a> -->
-            <span class="topmenu"   onclick="openNav()">&#9776; </span>
-            <span class="bottommenu"   onclick="openNav()">&#9776; </span> 
+            <span id="datanavmenu" class="topmenu"   onclick="openNav()">&#9776; </span>
+            <span id="legendsmenu" class="bottommenu"   onclick="openNav()">&#9776; </span> 
             <!---->
            
         </div>
@@ -134,12 +134,34 @@
                     {
                     $('.leftmenu').toggleClass("leftmenuexpand");
                     $('.leftnavmenu').toggleClass("leftnavmenuexpand ");
+                    
+                    if($('#layersmenu').hasClass('leftmenu'))
+                        {
+                        $('#layersmenu').html("&#9776");
+                        }
+                    if($('#layersmenu').hasClass('leftmenuexpand'))
+                        {
+                        $('#layersmenu').html("&#x2715"); 
+                        }
+                    
+
+                    //$('#layersmenu').html($('#layersmenu').text() == "&#x2715" ? "&#9776" : "&#x2715");
                     });
 
                 $('.rightmenu').on('click', function (e) 
                     {
                     $('.rightmenu').toggleClass("rightmenuexpand");
                     $('.rightnavmenu').toggleClass("rightnavmenuexpand ");
+
+                    if($('#chartsmenu').hasClass('rightmenu'))
+                        {
+                        $('#chartsmenu').html("&#9776");
+                        }
+                    if($('#chartsmenu').hasClass('rightmenuexpand'))
+                        {
+                        $('#chartsmenu').html("&#x2715"); 
+                        }
+
                     });
 
 

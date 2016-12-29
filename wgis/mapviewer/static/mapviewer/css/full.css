@@ -71,7 +71,7 @@ body {
 	padding-left: 7px;
 	top:48%;
 	background-color: #34DDDD;
-	transition: 0.5s;
+	transition: 0.9s;
 	}
 
 .rightmenuexpand
@@ -86,7 +86,7 @@ body {
 	padding-left: 7px;
 	top:48%;
 	background-color: #34DDDD;
-	transition: 0.5s;
+	transition: 0.9s;
 	}
 
 
@@ -232,7 +232,7 @@ body {
     left:100%;    
     background-color: #111;
     overflow-x: hidden;
-    transition: 0.5s;
+    transition: 0.9s;
     padding-top: 60px;
 }
 
@@ -245,7 +245,7 @@ body {
     left:50%;
     background-color: #111;
     overflow-x: hidden;
-    transition: 0.5s;
+    transition: 0.9s;
     padding-top: 60px;
 }
 
