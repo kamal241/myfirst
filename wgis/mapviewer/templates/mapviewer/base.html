@@ -1,3 +1,4 @@
+{% load staticfiles %}
 <!DOCTYPE html>
 <html class="full" lang="en">
 <!-- Make sure the <html> tag is set to the .full CSS class. Change the background image in the full.css file. -->
@@ -10,7 +11,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>Full - Start Bootstrap Template</title>
+    <title>GIS</title>
 
 
     {% block head_css %}
@@ -27,8 +28,23 @@
         {% endblock head_css_page %}
     {% endblock head_css %}
 
-    <script src="https://openlayers.org/en/v3.20.1/build/ol.js" type="text/javascript"></script>
+    <!--<script src="https://openlayers.org/en/v3.20.1/build/ol.js" type="text/javascript"></script>
+    
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    -->
+    <script src="http://localhost:8000/static/mapviewer/js/ol3/ol.js" type="text/javascript"></script>
+   <script src="http://localhost:8000/static/mapviewer/js/jquery-2.1.1.min.js" type="text/javascript"></script>
+<!-- <script href="{% static 'mapviewer/js/ol3/ol.js' %}" type="text/javascript"> </script> 
+    <script href="{% static 'mapviewer/js/jquery-2.1.1.min.js' %}" type="text/javascript"> </script> -->
+
+    
+
+    {% block head_js %}
+        {% block head_js_site %}
+
+        {% endblock head_js_site %}
+    {% endblock head_js %}     
+
     <!-- Bootstrap Core CSS -->
     <!--<link href="css/bootstrap.min.css" rel="stylesheet">-->
 
@@ -80,7 +96,11 @@
     -->
     <article>
         <div id="mapcontainer" class="clsmapcontainer" >
+            <header >
             
+            </header>  
+
+
             <div id="map" class="mmap">
             
             </div>    
@@ -88,17 +108,18 @@
             <button class="leftmenu" type="button">></button>
             <button class="rightmenu" type="button">></button>
             -->
-            <span id="layersmenu" class="leftmenu"   onclick="openNav()">&#9776; </span>
-            <span id="chartsmenu" class="rightmenu"   onclick="openNav()"> &#9776;</span>
+            <span id="layersmenu" class="leftmenu">&#9776; </span>
+            <span id="chartsmenu" class="rightmenu"> &#9776;</span>
             <!--<a href="#" class="rightmenu btn btn-danger" id="opener"><i class="glyphicon glyphicon-align-justify"></i></a> -->
-            <span id="datanavmenu" class="topmenu"   onclick="openNav()">&#9776; </span>
-            <span id="legendsmenu" class="bottommenu"   onclick="openNav()">&#9776; </span> 
+            <span id="datanavmenu" class="topmenu" >&#9776; </span>
+            <span id="legendsmenu" class="bottommenu" >&#9776; </span> 
             <!---->
            
         </div>
 
         <nav>
             <div id="mySidenav" class="leftnavmenu">
+                <button id="loadData" type="button" class="btn btn-primary" > Load </button>
                 <a href="#">About</a>
                 <a href="#">Services</a>
                 <a href="#">Clients</a>
@@ -116,18 +137,84 @@
         </nav>
 
 
-         <script type="text/javascript">
+        <script type="text/javascript">
+
+
+                var layerDataGeoJSONFormat = new ol.format.GeoJSON();
+
+                var windDataSource = new ol.source.Vector({
+                    format: layerDataGeoJSONFormat,
+                    projection: 'EPSG:3857',
+                    });
+
+                var windClusterDataSource = new ol.source.Cluster({source : windDataSource});
+
+                function getColorCodeForTemprature(tmp)
+                    {
+                    var strokeColor = [2,8,21,0.5];
+                    var twidth = 15;
+                    if(tmp <= 20) 
+                        {
+                        strokeColor = [2, 196, 21, 0.5];    //'#020815';
+                        twidth = 15;
+                        }
+                    else if(tmp>20 && tmp<25) 
+                        {
+                        strokeColor = [25, 140, 255,0.5];   //'#198cff';
+                        twidth = 17;
+                        }
+                    else if(tmp>=25) 
+                        {
+                        strokeColor = [270, 70 ,90, 0.5];//'#f61212';
+                        twidth = 20;
+                        }
+                    return [strokeColor,twidth];                        
+                    }
+
+                var wind10mLayerStyleFunction = function(feature)
+                    {
+                    var tval = Math.floor(parseFloat(feature.getProperties().features[0].getProperties().wd_10m));
+                    var ccodes = getColorCodeForTemprature(tval);
+
+                    var cStyle = new ol.style.Circle({
+                                fill: new ol.style.Fill({
+                                color: ccodes[0] //'#1b465a',
+                                }),
+                            stroke: new ol.style.Stroke({
+                                color: ccodes[0],
+                                width: 3
+                                }),
+                            radius: ccodes[1]
+                            });
+
+                    var cText = new ol.style.Text({
+                            text: tval.toString(),  // size.toString(),
+                            fill: new ol.style.Fill({color: '#fff'}),
+                            font: '15px sans-serif', 
+                            });
+
+                    return [new ol.style.Style({image: cStyle, text : cText})];     
+                    };
+
+
+                var wind10mLayer = new ol.layer.Vector({
+                        source: windClusterDataSource,
+                        style: wind10mLayerStyleFunction,
+                        layerid: 'wind10m'                    
+                        });
+
                 var map = new ol.Map({
                     target: 'map',
                     layers: [
                             new ol.layer.Tile({
-                            source: new ol.source.OSM()
-                            })
+                            source: new ol.source.OSM()}),
+                            wind10mLayer
                         ],
                     view: new ol.View({
-                        center: ol.proj.fromLonLat([37.41, 8.82]),
+                        center: ol.proj.fromLonLat([37.41, 8.82], 'EPSG:4326', 'EPSG:3857'),
                         zoom: 4
-                        })
+                        }),
+
                     });
 
                 $('.leftmenu').on('click', function (e) 
@@ -165,7 +252,10 @@
                     });
 
 
-            </script>
+        </script>
+
+
+
 
     </article>
     
@@ -181,7 +271,10 @@
     <!-- Bootstrap Core JavaScript -->
     <!--
     <script src="js/bootstrap.min.js"></script>
+    
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
     -->
+
 </body>
 
 </html>

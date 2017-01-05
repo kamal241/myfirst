@@ -22,9 +22,9 @@ body {
 
 .mmap
 	{
-		height:99%;
+		height:97%;
 		width:99%;	
-		top: 0%; 
+		top: 1%; 
 		margin: 0 auto; 
 		position: relative;			
 	}
@@ -82,7 +82,7 @@ body {
 	width:40px;
 	position:absolute; 	
 	z-index: 200;
-	right:50%;
+	right:40%;
 	padding-left: 7px;
 	top:48%;
 	background-color: #34DDDD;
@@ -238,11 +238,11 @@ body {
 
 .rightnavmenuexpand {
     height: 100%;
-    width: 50%;
+    width: 40%;
     position: fixed;
     z-index: 1;
     top: 0;
-    left:50%;
+    left:60%;
     background-color: #111;
     overflow-x: hidden;
     transition: 0.9s;

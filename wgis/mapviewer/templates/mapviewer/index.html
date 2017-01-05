@@ -4,6 +4,89 @@
 {% block head_css_site %}
     <link href="{% static 'mapviewer/css/bootstrap.min.css' %}" rel="stylesheet" media="screen">
     <link href="{% static 'mapviewer/css/full.css' %}" rel="stylesheet" media="screen">
+{% endblock %}
 
+
+{% block head_js_site %}
+
+<!--<script href="{% static 'mapviewer/js/ol3/ol.js' %}" type="text/javascript"> </script>
+    <script href="{% static 'mapviewer/js/jquery-3.1.0.min.js' %}" type="text/javascript"> </script> -->
+    <script href="{% static 'mapviewer/js/mapviewer.js' %}" type="text/javascript"> </script>
+    <script  type="text/javascript">
+        var wdata;
+        var wind_data = {};
+        var wind_raw = {"gust":{"type": "FeatureCollection","features": []},"wd_10m":{"type": "FeatureCollection","features": []},"ws_10m":{"type": "FeatureCollection","features": []},"wd_925m":{"type": "FeatureCollection","features": []},"ws_925m":{"type": "FeatureCollection","features": []},"wd_975m":{"type": "FeatureCollection","features": []},"ws_975m":{"type": "FeatureCollection","features": []}};
+        wind_data[0] = {"gust":{"type": "FeatureCollection","features": []},"wd_10m":{"type": "FeatureCollection","features": []},"ws_10m":{"type": "FeatureCollection","features": []},"wd_925m":{"type": "FeatureCollection","features": []},"ws_925m":{"type": "FeatureCollection","features": []},"wd_975m":{"type": "FeatureCollection","features": []},"ws_975m":{"type": "FeatureCollection","features": []}};
+        wind_data[1] = {"gust":{"type": "FeatureCollection","features": []},"wd_10m":{"type": "FeatureCollection","features": []},"ws_10m":{"type": "FeatureCollection","features": []},"wd_925m":{"type": "FeatureCollection","features": []},"ws_925m":{"type": "FeatureCollection","features": []},"wd_975m":{"type": "FeatureCollection","features": []},"ws_975m":{"type": "FeatureCollection","features": []}};
+        wind_data[2] = {"gust":{"type": "FeatureCollection","features": []},"wd_10m":{"type": "FeatureCollection","features": []},"ws_10m":{"type": "FeatureCollection","features": []},"wd_925m":{"type": "FeatureCollection","features": []},"ws_925m":{"type": "FeatureCollection","features": []},"wd_975m":{"type": "FeatureCollection","features": []},"ws_975m":{"type": "FeatureCollection","features": []}};
+        wind_data[3] = {"gust":{"type": "FeatureCollection","features": []},"wd_10m":{"type": "FeatureCollection","features": []},"ws_10m":{"type": "FeatureCollection","features": []},"wd_925m":{"type": "FeatureCollection","features": []},"ws_925m":{"type": "FeatureCollection","features": []},"wd_975m":{"type": "FeatureCollection","features": []},"ws_975m":{"type": "FeatureCollection","features": []}};
+        wind_data[4] = {"gust":{"type": "FeatureCollection","features": []},"wd_10m":{"type": "FeatureCollection","features": []},"ws_10m":{"type": "FeatureCollection","features": []},"wd_925m":{"type": "FeatureCollection","features": []},"ws_925m":{"type": "FeatureCollection","features": []},"wd_975m":{"type": "FeatureCollection","features": []},"ws_975m":{"type": "FeatureCollection","features": []}};
+        wind_data[5] = {"gust":{"type": "FeatureCollection","features": []},"wd_10m":{"type": "FeatureCollection","features": []},"ws_10m":{"type": "FeatureCollection","features": []},"wd_925m":{"type": "FeatureCollection","features": []},"ws_925m":{"type": "FeatureCollection","features": []},"wd_975m":{"type": "FeatureCollection","features": []},"ws_975m":{"type": "FeatureCollection","features": []}};
+
+        $(function() 
+            {
+            if (ol.Map.prototype.getLayer === undefined) 
+                {    
+                ol.Map.prototype.getLayer = function (id) 
+                    {
+                    var layer;
+                    this.getLayers().forEach(function (lyr) 
+                        {
+                        if (id == lyr.get('layerid')) 
+                            {
+                            layer = lyr;
+                            }            
+                        });
+                    return layer;
+                    }
+                }
+
+            var url = "http://localhost:8000/mapviewer/weather?lt1=20&lt2=22&ln1=70&ln2=72";
+            var success = function(data)
+                    {
+                    wdata = data;
+                    wind_data = {};
+                    wind_data[0] = {"gust":{"type": "FeatureCollection","features": []},"wd_10m":{"type": "FeatureCollection","features": []},"ws_10m":{"type": "FeatureCollection","features": []},"wd_925m":{"type": "FeatureCollection","features": []},"ws_925m":{"type": "FeatureCollection","features": []},"wd_975m":{"type": "FeatureCollection","features": []},"ws_975m":{"type": "FeatureCollection","features": []}};
+                    wind_data[1] = {"gust":{"type": "FeatureCollection","features": []},"wd_10m":{"type": "FeatureCollection","features": []},"ws_10m":{"type": "FeatureCollection","features": []},"wd_925m":{"type": "FeatureCollection","features": []},"ws_925m":{"type": "FeatureCollection","features": []},"wd_975m":{"type": "FeatureCollection","features": []},"ws_975m":{"type": "FeatureCollection","features": []}};
+                    wind_data[2] = {"gust":{"type": "FeatureCollection","features": []},"wd_10m":{"type": "FeatureCollection","features": []},"ws_10m":{"type": "FeatureCollection","features": []},"wd_925m":{"type": "FeatureCollection","features": []},"ws_925m":{"type": "FeatureCollection","features": []},"wd_975m":{"type": "FeatureCollection","features": []},"ws_975m":{"type": "FeatureCollection","features": []}};
+                    wind_data[3] = {"gust":{"type": "FeatureCollection","features": []},"wd_10m":{"type": "FeatureCollection","features": []},"ws_10m":{"type": "FeatureCollection","features": []},"wd_925m":{"type": "FeatureCollection","features": []},"ws_925m":{"type": "FeatureCollection","features": []},"wd_975m":{"type": "FeatureCollection","features": []},"ws_975m":{"type": "FeatureCollection","features": []}};
+                    wind_data[4] = {"gust":{"type": "FeatureCollection","features": []},"wd_10m":{"type": "FeatureCollection","features": []},"ws_10m":{"type": "FeatureCollection","features": []},"wd_925m":{"type": "FeatureCollection","features": []},"ws_925m":{"type": "FeatureCollection","features": []},"wd_975m":{"type": "FeatureCollection","features": []},"ws_975m":{"type": "FeatureCollection","features": []}};
+                    wind_data[5] = {"gust":{"type": "FeatureCollection","features": []},"wd_10m":{"type": "FeatureCollection","features": []},"ws_10m":{"type": "FeatureCollection","features": []},"wd_925m":{"type": "FeatureCollection","features": []},"ws_925m":{"type": "FeatureCollection","features": []},"wd_975m":{"type": "FeatureCollection","features": []},"ws_975m":{"type": "FeatureCollection","features": []}};
+
+                    $.each(wdata.features, 
+                        function (key, val)             // All locations
+                            {
+                            dlocation = val[0].geometry; 
+                            dwind = val[0].properties.wind;
+
+                            $.each(dwind, 
+                                function (key2, val2)   // All levels
+                                    {
+                                    var tpata = {};
+                                    var tdata = val2;
+                                    $.each(tdata,function(dk,dv)
+                                        {
+                                        var feature = {};
+                                        feature["geometry"] = dlocation;
+                                        feature["properties"] = {};
+                                        feature["properties"][key2] = dv;
+                                        wind_data[dk][key2].features.push(feature);
+                                        }); 
+                                    });
+                            });
+
+                    windDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(wind_data[0].wd_10m,{'featureProjection':'EPSG:3857'}));
+                    };
+            $('#loadData').click(function (e) 
+                {
+                $.ajax({
+                    dataType: 'json',
+                    url: url,
+//                    data: data,
+                    success: success
+                    });
+                });
+            });
+     </script>
 {% endblock %}
 
