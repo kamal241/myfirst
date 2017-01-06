@@ -111,19 +111,36 @@
             <span id="layersmenu" class="leftmenu">&#9776; </span>
             <span id="chartsmenu" class="rightmenu"> &#9776;</span>
             <!--<a href="#" class="rightmenu btn btn-danger" id="opener"><i class="glyphicon glyphicon-align-justify"></i></a> -->
-            <span id="datanavmenu" class="topmenu" >&#9776; </span>
-            <span id="legendsmenu" class="bottommenu" >&#9776; </span> 
+            <span id="legendsmenu" class="topmenu" >&#9776; </span>
+            <span id="datanavmenu" class="bottommenu" >&#9776; </span> 
             <!---->
            
         </div>
 
         <nav>
-            <div id="mySidenav" class="leftnavmenu">
+            <div id="layersnav" class="leftnavmenu">
                 <button id="loadData" type="button" class="btn btn-primary" > Load </button>
-                <a href="#">About</a>
-                <a href="#">Services</a>
-                <a href="#">Clients</a>
-                <a href="#">Contact</a>
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" value="">
+                        <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>Temperature
+                    </label>
+                    <label>
+                        <input type="checkbox" value="" checked>
+                        <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>Pressure                        
+                    </label>
+                </div>
+                <div class="checkbox ">
+                    <label>
+                        <input type="checkbox" value="">
+                        <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>Humidity
+                    </label>
+                    <label>
+                        <input type="checkbox" value="">
+                        <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>APCP
+                    </label>
+                </div>
+
             </div>
         </nav>
 
@@ -133,6 +150,16 @@
                 <a href="#">Services</a>
                 <a href="#">Clients</a>
                 <a href="#">Contact</a>
+            </div>
+        </nav>
+
+        <nav>
+            <div id="mySideTopnav" class="topnavmenu">
+            </div>
+        </nav>
+
+        <nav>
+            <div id="mySideBottomnav" class="bottomnavmenu">
             </div>
         </nav>
 
@@ -220,7 +247,7 @@
                 $('.leftmenu').on('click', function (e) 
                     {
                     $('.leftmenu').toggleClass("leftmenuexpand");
-                    $('.leftnavmenu').toggleClass("leftnavmenuexpand ");
+                    $('.leftnavmenu').toggleClass("leftnavmenuexpand");
                     
                     if($('#layersmenu').hasClass('leftmenu'))
                         {
@@ -230,15 +257,13 @@
                         {
                         $('#layersmenu').html("&#x2715"); 
                         }
-                    
-
                     //$('#layersmenu').html($('#layersmenu').text() == "&#x2715" ? "&#9776" : "&#x2715");
                     });
 
                 $('.rightmenu').on('click', function (e) 
                     {
                     $('.rightmenu').toggleClass("rightmenuexpand");
-                    $('.rightnavmenu').toggleClass("rightnavmenuexpand ");
+                    $('.rightnavmenu').toggleClass("rightnavmenuexpand");
 
                     if($('#chartsmenu').hasClass('rightmenu'))
                         {
@@ -248,9 +273,35 @@
                         {
                         $('#chartsmenu').html("&#x2715"); 
                         }
-
                     });
 
+                $('.bottommenu').on('click', function (e) 
+                    {                    
+                    $('.bottommenu').toggleClass("bottommenuexpand");
+                    $('.bottomnavmenu').toggleClass("bottomnavmenuexpand");
+                    if($('#datanavmenu').hasClass('bottommenu'))
+                        {                    
+                        $('#datanavmenu').html("&#9776");                        
+                        }
+                    if($('#datanavmenu').hasClass('bottommenuexpand'))
+                        {
+                        $('#datanavmenu').html("&#x2715");                         
+                        }
+                    });
+
+                $('.topmenu').on('click', function (e) 
+                    {
+                    $('.topmenu').toggleClass("topmenuexpand"); 
+                    $('.topnavmenu').toggleClass("topnavmenuexpand");                   
+                    if($('#legendsmenu').hasClass('topmenu'))
+                        {
+                        $('#legendsmenu').html("&#9776");
+                        }
+                    if($('#legendsmenu').hasClass('topmenuexpand'))
+                        {
+                        $('#legendsmenu').html("&#x2715"); 
+                        }
+                    });
 
         </script>
 

@@ -4,6 +4,7 @@
 {% block head_css_site %}
     <link href="{% static 'mapviewer/css/bootstrap.min.css' %}" rel="stylesheet" media="screen">
     <link href="{% static 'mapviewer/css/full.css' %}" rel="stylesheet" media="screen">
+    <link href="{% static 'mapviewer/css/layersnav.css' %}" rel="stylesheet" media="screen">
 {% endblock %}
 
 
@@ -41,7 +42,7 @@
                     }
                 }
 
-            var url = "http://localhost:8000/mapviewer/weather?lt1=20&lt2=22&ln1=70&ln2=72";
+            var url = "http://localhost:8000/mapviewer/weather?lt1=20&lt2=25&ln1=70&ln2=75";
             var success = function(data)
                     {
                     wdata = data;
@@ -86,6 +87,14 @@
                     success: success
                     });
                 });
+
+            $("#layerslistnav ul.nav li.parent > a > span.sign").click(function(){          
+                $(this).find('i:first').toggleClass("icon-minus");      
+                }); 
+        
+            // Open Le current menu
+            $("#layerslistnav ul.nav li.parent.active > a > span.sign").find('i:first').addClass("icon-minus");
+            $("#layerslistnav ul.nav li.current").parents('ul.children').addClass("in");
             });
      </script>
 {% endblock %}
