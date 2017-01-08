@@ -12,10 +12,12 @@
 
 <!--<script href="{% static 'mapviewer/js/ol3/ol.js' %}" type="text/javascript"> </script>
     <script href="{% static 'mapviewer/js/jquery-3.1.0.min.js' %}" type="text/javascript"> </script> -->
-    <script href="{% static 'mapviewer/js/mapviewer.js' %}" type="text/javascript"> </script>
+    <script href="{% static 'mapviewer/js/mapviewer.js' %}" type="text/javascript"> </script> 
     <script  type="text/javascript">
         var wdata;
         var wind_data = {};
+        var responseWS10mContData, responsePRMSLContData, responseTMP2mContData, responseHMDT2mContData, responseAPCPContData;
+
         var wind_raw = {"gust":{"type": "FeatureCollection","features": []},"wd_10m":{"type": "FeatureCollection","features": []},"ws_10m":{"type": "FeatureCollection","features": []},"wd_925m":{"type": "FeatureCollection","features": []},"ws_925m":{"type": "FeatureCollection","features": []},"wd_975m":{"type": "FeatureCollection","features": []},"ws_975m":{"type": "FeatureCollection","features": []}};
         wind_data[0] = {"gust":{"type": "FeatureCollection","features": []},"wd_10m":{"type": "FeatureCollection","features": []},"ws_10m":{"type": "FeatureCollection","features": []},"wd_925m":{"type": "FeatureCollection","features": []},"ws_925m":{"type": "FeatureCollection","features": []},"wd_975m":{"type": "FeatureCollection","features": []},"ws_975m":{"type": "FeatureCollection","features": []}};
         wind_data[1] = {"gust":{"type": "FeatureCollection","features": []},"wd_10m":{"type": "FeatureCollection","features": []},"ws_10m":{"type": "FeatureCollection","features": []},"wd_925m":{"type": "FeatureCollection","features": []},"ws_925m":{"type": "FeatureCollection","features": []},"wd_975m":{"type": "FeatureCollection","features": []},"ws_975m":{"type": "FeatureCollection","features": []}};
@@ -42,8 +44,21 @@
                     }
                 }
 
-            var url = "http://localhost:8000/mapviewer/weather?lt1=20&lt2=25&ln1=70&ln2=75";
-            var success = function(data)
+            function getByName(objs,name)
+                {
+                var result  = objs.features.filter(
+                    function(o)
+                        {
+                        return o.properties.name == name;
+                        });
+                    return result? result[0] : null; // or undefined
+                 }
+
+            var vector_url = "http://localhost:8000/mapviewer/weather?lt1=20&lt2=25&ln1=70&ln2=75&dtm=20170106";
+            var raster_url = "http://localhost:8000/mapviewer/weather_raster?lt1=20&lt2=25&ln1=70&ln2=75&dtm=2017010600";
+
+
+            var vector_success = function(data)
                     {
                     wdata = data;
                     wind_data = {};
@@ -78,14 +93,45 @@
 
                     windDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(wind_data[0].wd_10m,{'featureProjection':'EPSG:3857'}));
                     };
+
+            var raster_success = function(data)
+                    {
+                    responseWS10mContData = getByName(data,'WS10m');
+
+                    ws10mContDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(responseWS10mContData,{'featureProjection':'EPSG:3857'}));
+                            
+                        
+                    responsePRMSLContData = getByName(data,'PRMSL');
+
+                    prContDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(responsePRMSLContData,{'featureProjection':'EPSG:3857'}));
+                            
+                    responseTMP2mContData = getByName(data,'TMP2m');
+                    tmp2mContDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(responseTMP2mContData,{'featureProjection':'EPSG:3857'}));
+                            
+                    responseHMDT2mContData = getByName(data,'HMDT2m');
+                    hmdt2mContDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(responseHMDT2mContData,{'featureProjection':'EPSG:3857'}));
+                    
+                    responseAPCPContData = getByName(data,'APCP');
+                    apcpContDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(responseAPCPContData,{'featureProjection':'EPSG:3857'}));
+
+                    };
+
             $('#loadData').click(function (e) 
                 {
+                /*$.ajax({
+                    dataType: 'json',
+                    url: vector_url,
+//                    data: data,
+                    success: vector_success
+                    });*/
                 $.ajax({
                     dataType: 'json',
-                    url: url,
+                    url: raster_url,
 //                    data: data,
-                    success: success
+                    success: raster_success
                     });
+
+
                 });
 
             $("#layerslistnav ul.nav li.parent > a > span.sign").click(function(){          
@@ -98,4 +144,538 @@
             });
      </script>
 {% endblock %}
+
+{% block navigation_site %}
+        <nav>
+            <div id="layersnav" class="leftnavmenu">
+                <div class="panel-group" id="accordion">
+                  <div class="panel panel-default">
+                    <div class="panel-heading">
+                      <h1 class="panel-title">
+                        <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
+                          Location
+                        </a>
+                      </h1>
+                    </div>
+                    <div id="collapseOne" class="panel-collapse collapse">
+                      <div class="panel-body">
+                      </div>
+                    </div>
+                  </div>
+                  <div class="panel panel-default">
+                    <div class="panel-heading">
+                      <h5 class="panel-title">
+                        <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapseTwo">
+                          Layers
+                        </a>
+                      </h5>
+                    </div>
+                    <div id="collapseTwo" class="panel-collapse collapse">
+                      <div class="panel-body">
+                        <label>TPHA</label>
+                        <span class="divider"></span>
+                        <div class="checkbox">
+                            <label class="col-md-6">
+                                <input type="checkbox" value="" id="temprature2mCPVisible">
+                                <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>Temperature
+                            </label>
+                            <label class="col-md-6">
+                                <input type="checkbox" value="" id="pressureMSLILVisible">
+                                <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>Pressure                        
+                            </label>
+                        </div>
+                        <div class="checkbox ">
+                            <label  class="col-md-6">
+                                <input type="checkbox" value="" id="humidity2mCPVisible">
+                                <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>Humidity
+                            </label>
+                            <label  class="col-md-6">
+                                <input type="checkbox" value="" id="apcpVisible">
+                                <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>APCP
+                            </label>
+                        </div>
+                        <label class="layerLabel">Wind (Knots)</label>
+                        <span class="divider"></span>
+                        <div class="checkbox">
+                            <label class="col-md-6">
+                                <input type="checkbox" value="" id="wind10mCPVisible">
+                                <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>10 m
+                            </label>
+                            <label class="col-md-6">
+                                <input type="checkbox" value=""  id="wind925mbVisible">
+                                <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>925 mb
+                            </label>
+                        </div>
+                        <div class="checkbox ">
+                            <label  class="col-md-6">
+                                <input type="checkbox" value="" id="wind975mbVisible">
+                                <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>975 mb
+                            </label>
+                            <label  class="col-md-6">
+                                <input type="checkbox" value="" id="windGustVisible">
+                                <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>Gust
+                            </label>
+                        </div>
+                        <label class="layerLabel" >Cloud Cover (%)</label>
+                        <span class="divider"></span>
+                        <div class="checkbox">
+                            <label class="col-md-6">
+                                <input type="checkbox" value="">
+                                <span class="cr">
+                                    <i class="cr-icon glyphicon glyphicon-ok"></i>
+                                </span>Low (%)
+                            </label>
+                            <label class="col-md-6">
+                                <input type="checkbox" value="" >
+                                <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>Middle (%)
+                            </label>
+                        </div>
+                        <div class="checkbox ">
+                            <label  class="col-md-6">
+                                <input type="checkbox" value="">
+                                <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>Convective (%)
+                            </label>  
+                        </div>
+                        <label class="layerLabel">Cloud Base Height (feet)</label>
+                        <span class="divider"></span>
+                        <div class="checkbox">
+                            <label class="col-md-6">
+                                <input type="checkbox" value="">
+                                <span class="cr">
+                                    <i class="cr-icon glyphicon glyphicon-ok"></i>
+                                </span>Low (feet)
+                            </label>
+                            <label class="col-md-6">
+                                <input type="checkbox" value="" >
+                                <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>Middle (feet)
+                            </label>
+                        </div>
+                        <div class="checkbox ">
+                            <label  class="col-md-6">
+                                <input type="checkbox" value="">
+                                <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>High (feet)
+                            </label>  
+                        </div>
+                        <label class="layerLabel">Swell</label>
+                        <span class="divider"></span>
+                        <div class="checkbox">
+                            <label class="col-md-6">
+                                <input type="checkbox" value="">
+                                <span class="cr">
+                                    <i class="cr-icon glyphicon glyphicon-ok"></i>
+                                </span>Primary Dir
+                            </label>
+                            <label class="col-md-6">
+                                <input type="checkbox" value="" >
+                                <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>Secondary Dir
+                            </label>
+                        </div>
+                        <div class="checkbox ">
+                            <label class="col-md-6">
+                                <input type="checkbox" value="">
+                                <span class="cr">
+                                    <i class="cr-icon glyphicon glyphicon-ok"></i>
+                                </span>Primary Period (s)
+                            </label>
+                            <label class="col-md-6">
+                                <input type="checkbox" value="" >
+                                <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>Secondary Period (s)
+                            </label>        
+                        </div>
+                        <div class="checkbox ">
+                            <label class="col-md-6">
+                                <input type="checkbox" value="">
+                                <span class="cr">
+                                    <i class="cr-icon glyphicon glyphicon-ok"></i>
+                                </span>Primary Height (m)
+                            </label>
+                            <label class="col-md-6">
+                                <input type="checkbox" value="" >
+                                <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>Secondary Height (m)
+                            </label>        
+                        </div>
+                        <label class="layerLabel">Sea Wave</label>
+                        <span class="divider"></span>
+                        <div class="checkbox">
+                            <label class="col-md-6">
+                                <input type="checkbox" value="">
+                                <span class="cr">
+                                    <i class="cr-icon glyphicon glyphicon-ok"></i>
+                                </span>Wave Height
+                            </label>
+                            <label class="col-md-6">
+                                <input type="checkbox" value="" >
+                                <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>Period (s)
+                            </label>
+                        </div>
+                        <div class="checkbox ">
+                            <label class="col-md-6">
+                                <input type="checkbox" value="">
+                                <span class="cr">
+                                    <i class="cr-icon glyphicon glyphicon-ok"></i>
+                                </span>Direction Peak (s)
+                            </label>
+                            <label class="col-md-6">
+                                <input type="checkbox" value="" >
+                                <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>Period Peak (s)
+                            </label>        
+                        </div>
+                        <div class="checkbox ">
+                            <label class="col-md-6">
+                                <input type="checkbox" value="">
+                                <span class="cr">
+                                    <i class="cr-icon glyphicon glyphicon-ok"></i>
+                                </span>Significant Height (m)
+                            </label>
+                            <label class="col-md-6">
+                                <input type="checkbox" value="" >
+                                <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>Max Height (m)
+                            </label>        
+                        </div>     
+                        <button id="loadData" type="button" class="btn btn-primary" > Load </button>                    
+                      </div>
+                    </div>
+                  </div>
+                  <div class="panel panel-default">
+                    <div class="panel-heading">
+                      <h5 class="panel-title">
+                        <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapseThree">
+                          Reports
+                        </a>
+                      </h5>
+                    </div>
+                    <div id="collapseThree" class="panel-collapse collapse">
+                      <div class="panel-body">
+                        Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3 wolf moon officia aute, non cupidatat skateboard dolor brunch. Food truck quinoa nesciunt laborum eiusmod. Brunch 3 wolf moon tempor, sunt aliqua put a bird on it squid single-origin coffee nulla assumenda shoreditch et. Nihil anim keffiyeh helvetica, craft beer labore wes anderson cred nesciunt sapiente ea proident. Ad vegan excepteur butcher vice lomo. Leggings occaecat craft beer farm-to-table, raw denim aesthetic synth nesciunt you probably haven't heard of them accusamus labore sustainable VHS.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+            </div>
+      
+
+                <!--<div id="layersnav" class="leftnavmenu">
+                    <button id="loadData" type="button" class="btn btn-primary" > Load </button>
+                    <span class="divider"></span>                
+                    <div class="checkbox">
+                        <label class="col-md-6">
+                            <input type="checkbox" value="">
+                            <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>Temperature
+                        </label>
+                        <label class="col-md-6">
+                            <input type="checkbox" value="" checked>
+                            <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>Pressure                        
+                        </label>
+                    </div>
+                    <div class="checkbox ">
+                        <label  class="col-md-6">
+                            <input type="checkbox" value="">
+                            <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>Humidity
+                        </label>
+                        <label  class="col-md-6">
+                            <input type="checkbox" value="">
+                            <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>APCP
+                        </label>
+                    </div>
+
+                </div> -->
+        </nav>
+
+        <nav>
+            <div id="mySideRightnav" class="rightnavmenu">
+                <a href="#">About</a>
+                <a href="#">Services</a>
+                <a href="#">Clients</a>
+                <a href="#">Contact</a>
+            </div>
+        </nav>
+
+        <nav>
+            <div id="mySideTopnav" class="topnavmenu">
+            </div>
+        </nav>
+
+        <nav>
+            <div id="mySideBottomnav" class="bottomnavmenu">
+            </div>
+        </nav>
+{% endblock %}
+
+        {% block conten_js %}
+
+        <script type="text/javascript">
+            var layerDataGeoJSONFormat = new ol.format.GeoJSON();
+
+            var windDataSource = new ol.source.Vector({
+                    format: layerDataGeoJSONFormat,
+                    projection: 'EPSG:3857',
+                    });
+
+            var windClusterDataSource = new ol.source.Cluster({source : windDataSource});
+
+            function getColorCodeForTemprature(tmp)
+                    {
+                    var strokeColor = [2,8,21,0.5];
+                    var twidth = 15;
+                    if(tmp <= 20) 
+                        {
+                        strokeColor = [2, 196, 21, 0.5];    //'#020815';
+                        twidth = 15;
+                        }
+                    else if(tmp>20 && tmp<25) 
+                        {
+                        strokeColor = [25, 140, 255,0.5];   //'#198cff';
+                        twidth = 17;
+                        }
+                    else if(tmp>=25) 
+                        {
+                        strokeColor = [270, 70 ,90, 0.5];//'#f61212';
+                        twidth = 20;
+                        }
+                    return [strokeColor,twidth];                        
+                    }
+
+            var wind10mLayerStyleFunction = function(feature)
+                    {
+                    var tval = Math.floor(parseFloat(feature.getProperties().features[0].getProperties().wd_10m));
+                    var ccodes = getColorCodeForTemprature(tval);
+
+                    var cStyle = new ol.style.Circle({
+                                fill: new ol.style.Fill({
+                                color: ccodes[0] //'#1b465a',
+                                }),
+                            stroke: new ol.style.Stroke({
+                                color: ccodes[0],
+                                width: 3
+                                }),
+                            radius: ccodes[1]
+                            });
+
+                    var cText = new ol.style.Text({
+                            text: tval.toString(),  // size.toString(),
+                            fill: new ol.style.Fill({color: '#fff'}),
+                            font: '15px sans-serif', 
+                            });
+
+                    return [new ol.style.Style({image: cStyle, text : cText})];     
+                    };
+
+            var wind10mLayer = new ol.layer.Vector({
+                    source: windClusterDataSource,
+                    style: wind10mLayerStyleFunction,
+                    layerid: 'wind10m'                    
+                    });
+
+            var ws10mContDataSource = new ol.source.Vector({
+                format: layerDataGeoJSONFormat,
+                projection: 'EPSG:3857',
+                });
+
+            var ws10mContLayerStyleFunction = function(feature)
+                {
+                var ccodes = feature.getProperties().fill;  
+                var label = feature.getProperties().label;  
+                var polyStyle = new ol.style.Style({
+                            stroke: new ol.style.Stroke({
+                                    color:  ccodes ,
+                                    width: 1
+                                    }),
+                                fill: new ol.style.Fill({
+                                    color:  ccodes 
+                                    }),
+                                text: new ol.style.Text({
+                                text: label.toString(), // size.toString(),
+                                    //
+                                fill: new ol.style.Fill({color: '#000'}),
+                                font: '10px sans-serif', 
+                                })
+                              });
+
+                return [polyStyle];
+
+                };
+
+            var ws10mContLayer = new ol.layer.Vector({
+                    source: ws10mContDataSource,
+                    style: ws10mContLayerStyleFunction, 
+                    layerid: 'ws10mCont',
+                    opacity: 0.5
+                    });
+
+            var contLayerStyleFunction = function(feature)
+                {
+                var ccodes = feature.getProperties().fill;  
+                var label = feature.getProperties().label;  
+                var polyStyle = new ol.style.Style({
+                            stroke: new ol.style.Stroke({
+                                    color:  ccodes ,
+                                    width: 1
+                                    }),
+                                fill: new ol.style.Fill({
+                                    color:  ccodes 
+                                    }),
+                                text: new ol.style.Text({
+                                text: label.toString(), // size.toString(),
+                                    //
+                                fill: new ol.style.Fill({color: '#000'}),
+                                font: '10px sans-serif', 
+                                })
+                              });
+
+                return [polyStyle];
+
+                };
+
+            var prContDataSource = new ol.source.Vector({
+                format: layerDataGeoJSONFormat,
+                projection: 'EPSG:3857',
+                });
+
+            var prContLayer = new ol.layer.Vector({
+                    source: prContDataSource,
+                    style: contLayerStyleFunction, 
+                    layerid: 'prmslCont',
+                    opacity: 1
+                    });
+
+            var tmp2mContDataSource = new ol.source.Vector({
+                format: layerDataGeoJSONFormat,
+                projection: 'EPSG:3857',
+                });
+
+            var tmp2mContLayer = new ol.layer.Vector({
+                    source: tmp2mContDataSource,
+                    style: contLayerStyleFunction,
+                    layerid: 'tmp2mCont',
+                    opacity: 0.5
+                    });
+
+            var hmdt2mContDataSource = new ol.source.Vector({
+                format: layerDataGeoJSONFormat,
+                projection: 'EPSG:3857',
+                });
+
+            var hmdt2mContLayer = new ol.layer.Vector({
+                    source: hmdt2mContDataSource,
+                    style: contLayerStyleFunction, 
+                    layerid: 'hmdt2mCont',
+                    opacity: 0.5
+                    });
+
+            var apcpContDataSource = new ol.source.Vector({
+                format: layerDataGeoJSONFormat,
+                projection: 'EPSG:3857',
+                });
+
+            var apcpContLayer = new ol.layer.Vector({
+                    source: apcpContDataSource,
+                    style: contLayerStyleFunction, 
+                    layerid: 'apcpCont',
+                    opacity: 0.5
+                    });
+
+            var map = new ol.Map({
+                target: 'map',
+                layers: [
+                        new ol.layer.Tile({
+                        source: new ol.source.OSM()}),
+                        wind10mLayer,
+                        ws10mContLayer,
+                        tmp2mContLayer,
+                        hmdt2mContLayer,
+                        apcpContLayer,
+                        prContLayer
+                    ],
+                view: new ol.View({
+                    center: ol.proj.fromLonLat([37.41, 8.82], 'EPSG:4326', 'EPSG:3857'),
+                    zoom: 4
+                    }),
+
+                });
+
+            $('.leftmenu').on('click', function (e) 
+                {
+                $('.leftmenu').toggleClass("leftmenuexpand");
+                $('.leftnavmenu').toggleClass("leftnavmenuexpand");
+                
+                if($('#layersmenu').hasClass('leftmenu'))
+                    {
+                    $('#layersmenu').html("&#9776");
+                    }
+                if($('#layersmenu').hasClass('leftmenuexpand'))
+                    {
+                    $('#layersmenu').html("&#x2715"); 
+                    }
+                //$('#layersmenu').html($('#layersmenu').text() == "&#x2715" ? "&#9776" : "&#x2715");
+                });
+
+            $('.rightmenu').on('click', function (e) 
+                {
+                $('.rightmenu').toggleClass("rightmenuexpand");
+                $('.rightnavmenu').toggleClass("rightnavmenuexpand");
+
+                if($('#chartsmenu').hasClass('rightmenu'))
+                    {
+                    $('#chartsmenu').html("&#9776");
+                    }
+                if($('#chartsmenu').hasClass('rightmenuexpand'))
+                    {
+                    $('#chartsmenu').html("&#x2715"); 
+                    }
+                });
+
+            $('.bottommenu').on('click', function (e) 
+                {                    
+                $('.bottommenu').toggleClass("bottommenuexpand");
+                $('.bottomnavmenu').toggleClass("bottomnavmenuexpand");
+                if($('#datanavmenu').hasClass('bottommenu'))
+                    {                    
+                    $('#datanavmenu').html("&#9776");                        
+                    }
+                if($('#datanavmenu').hasClass('bottommenuexpand'))
+                    {
+                    $('#datanavmenu').html("&#x2715");                         
+                    }
+                });
+
+            $('.topmenu').on('click', function (e) 
+                {
+                $('.topmenu').toggleClass("topmenuexpand"); 
+                $('.topnavmenu').toggleClass("topnavmenuexpand");                   
+                if($('#legendsmenu').hasClass('topmenu'))
+                    {
+                    $('#legendsmenu').html("&#9776");
+                    }
+                if($('#legendsmenu').hasClass('topmenuexpand'))
+                    {
+                    $('#legendsmenu').html("&#x2715"); 
+                    }
+                });
+     
+            $("#wind10mCPVisible").change(
+                function(){
+                    map.getLayer('ws10mCont').setVisible($(this).prop("checked"));
+                });
+                                            
+            $("#temprature2mCPVisible").change(
+                function(){
+                    map.getLayer('tmp2mCont').setVisible($(this).prop("checked"));
+                });
+
+            $("#humidity2mCPVisible").change(
+                function(){
+                    map.getLayer('hmdt2mCont').setVisible($(this).prop("checked"));
+                });            
+
+            $("#apcpVisible").change(
+                function(){
+                    map.getLayer('apcpCont').setVisible($(this).prop("checked"));
+                });
+
+            $("#pressureMSLILVisible").change(
+                function(){
+                    map.getLayer('prmslCont').setVisible($(this).prop("checked"));
+                });            
+        </script>
+        {% endblock %}
 

@@ -54,7 +54,7 @@ body {
 	z-index: 200;	
 	background-color: #C84127;
 	padding-left: 4px;
-	left:25%;
+	left:30%;
 	top:48%;
 	transition: 0.5s;
 	}
@@ -219,7 +219,7 @@ body {
 
 .leftnavmenuexpand {
     height: 100%;
-    width: 25%;
+    width: 30%;
     position: fixed;
     z-index: 1;
     top: 0;
@@ -423,4 +423,39 @@ body {
 }
 
 
+.panel-heading .accordion-toggle:after {
+    /* symbol for "opening" panels */
+    font-family: 'Glyphicons Halflings';  /* essential for enabling glyphicon */
+    content: "\e082";    /* //"\e114"; adjust as needed, taken from bootstrap.css */
+    float: right;        /* adjust as needed */
+    color: grey;         /* adjust as needed */
+}
+.panel-heading .accordion-toggle.collapsed:after {
+    /* symbol for "collapsed" panels */
+    content: "\e081";    /* adjust as needed, taken from bootstrap.css */
+}
 
+#accordion
+{
+	padding:5px;
+	margin: 10px;
+}
+
+.checkbox
+{
+	padding-bottom:20px;
+}
+
+.divider {
+  height: 1px;
+  width:100%;
+  display:block; /* for use on default inline elements like span */
+  margin: 9px 0;
+  overflow: hidden;
+  background-color: #e5e5e5;
+}
+
+.layerLabel 
+{
+	margin-top: 10px;
+}
