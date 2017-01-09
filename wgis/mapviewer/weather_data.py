@@ -15,7 +15,8 @@ def get_weather_data(lt1, lt2, ln1, ln2, dtm):
 	R2D = 57.2958
 
 #	lt1, lt2, ln1, ln2 = 20,25,335,340
-	grbfs =  ["gfs.t00z.pgrb2.0p25.f001","gfs.t00z.pgrb2.0p25.f007","gfs.t00z.pgrb2.0p25.f013","gfs.t00z.pgrb2.0p25.f019","gfs.t00z.pgrb2.0p25.f025"]
+#	grbfs =  ["gfs.t00z.pgrb2.0p25.f001","gfs.t00z.pgrb2.0p25.f007","gfs.t00z.pgrb2.0p25.f013","gfs.t00z.pgrb2.0p25.f019","gfs.t00z.pgrb2.0p25.f025"]
+	grbfs =  ["gfs.t00z.pgrb2.0p25.f001","gfs.t00z.pgrb2.0p25.f002","gfs.t00z.pgrb2.0p25.f003","gfs.t00z.pgrb2.0p25.f004"]
 
 
 	ws10_all, ws925_all, ws975_all = [], [], []
@@ -26,7 +27,7 @@ def get_weather_data(lt1, lt2, ln1, ln2, dtm):
 	gust_all = []
 
 	for f in grbfs:
-		data = pygrib.open('/home/rssdersms/Documents/otr/dls-prod/dls-data/%s/00/%s' % (dtm, f))
+		data = pygrib.open('/home/megha/Synergy/aws/dls-prod/dls-data/%s/00/%s' % (dtm, f))
 
 		t2 = data.select(shortName="2t",typeOfLevel="heightAboveGround",level=2)[0]
 		prmsl = data.select(shortName="prmsl",typeOfLevel="meanSea",level=0)[0]
