@@ -423,16 +423,25 @@ body {
 }
 
 
+
+.panel-heading:active, 
+.panel-heading:focus, 
+.panel-heading:hover
+	{   
+	background-color: #224422 !important;
+	}
+
 .panel-heading .accordion-toggle:after {
     /* symbol for "opening" panels */
     font-family: 'Glyphicons Halflings';  /* essential for enabling glyphicon */
-    content: "\e082";    /* //"\e114"; adjust as needed, taken from bootstrap.css */
+/*    content: "\e081";    /* //"\e114"; adjust as needed, taken from bootstrap.css */
     float: right;        /* adjust as needed */
     color: grey;         /* adjust as needed */
 }
+
 .panel-heading .accordion-toggle.collapsed:after {
     /* symbol for "collapsed" panels */
-    content: "\e081";    /* adjust as needed, taken from bootstrap.css */
+/*    content: "\e082";    /* adjust as needed, taken from bootstrap.css */
 }
 
 #accordion
@@ -459,3 +468,4 @@ body {
 {
 	margin-top: 10px;
 }
+

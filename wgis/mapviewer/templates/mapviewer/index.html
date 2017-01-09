@@ -5,6 +5,7 @@
     <link href="{% static 'mapviewer/css/bootstrap.min.css' %}" rel="stylesheet" media="screen">
     <link href="{% static 'mapviewer/css/full.css' %}" rel="stylesheet" media="screen">
     <link href="{% static 'mapviewer/css/layersnav.css' %}" rel="stylesheet" media="screen">
+    <link rel="stylesheet" href="{% static 'mapviewer/css/ol3-contextmenu.min.css' %}">
 {% endblock %}
 
 
@@ -13,10 +14,24 @@
 <!--<script href="{% static 'mapviewer/js/ol3/ol.js' %}" type="text/javascript"> </script>
     <script href="{% static 'mapviewer/js/jquery-3.1.0.min.js' %}" type="text/javascript"> </script> -->
     <script href="{% static 'mapviewer/js/mapviewer.js' %}" type="text/javascript"> </script> 
+    <script src="{% static 'mapviewer/js/ol3-contextmenu.js' %}" type="text/javascript"></script>
     <script  type="text/javascript">
         var wdata;
         var wind_data = {};
         var responseWS10mContData, responsePRMSLContData, responseTMP2mContData, responseHMDT2mContData, responseAPCPContData;
+
+            var windArrows = ["{% static 'mapviewer/images/arrows/gm_arrow.png' %}",
+                        "{% static 'mapviewer/images/arrows/bm_arrow.png' %}",
+                        "{% static 'mapviewer/images/arrows/rm_arrow.png' %}",
+                        "{% static 'mapviewer/images/arrows/up-arrow.png' %}"];
+
+            var waveArrows = ["{% static 'mapviewer/images/arrows/no_dir2.png' %}",
+                        "{% static 'mapviewer/images/arrows/gm_arrow.png' %}",
+                        "{% static 'mapviewer/images/arrows/bm_arrow.png' %}",
+                        "{% static 'mapviewer/images/arrows/rm_arrow.png' %}"];
+
+        var url_marker = "{% static 'mapviewer/images/pin_drop.png' %}";
+        var start_map_pin = "{% static 'mapviewer/images/map-marker/start_bb2.png' %}";
 
         var wind_raw = {"gust":{"type": "FeatureCollection","features": []},"wd_10m":{"type": "FeatureCollection","features": []},"ws_10m":{"type": "FeatureCollection","features": []},"wd_925m":{"type": "FeatureCollection","features": []},"ws_925m":{"type": "FeatureCollection","features": []},"wd_975m":{"type": "FeatureCollection","features": []},"ws_975m":{"type": "FeatureCollection","features": []}};
         wind_data[0] = {"gust":{"type": "FeatureCollection","features": []},"wd_10m":{"type": "FeatureCollection","features": []},"ws_10m":{"type": "FeatureCollection","features": []},"wd_925m":{"type": "FeatureCollection","features": []},"ws_925m":{"type": "FeatureCollection","features": []},"wd_975m":{"type": "FeatureCollection","features": []},"ws_975m":{"type": "FeatureCollection","features": []}};
@@ -28,6 +43,9 @@
 
         $(function() 
             {
+
+
+
             if (ol.Map.prototype.getLayer === undefined) 
                 {    
                 ol.Map.prototype.getLayer = function (id) 
@@ -54,6 +72,7 @@
                     return result? result[0] : null; // or undefined
                  }
 
+            var base_url = "http://localhost:8000/mapviewer/";
             var vector_url = "http://localhost:8000/mapviewer/weather?lt1=20&lt2=25&ln1=70&ln2=75&dtm=20170106";
             var raster_url = "http://localhost:8000/mapviewer/weather_raster?lt1=20&lt2=25&ln1=70&ln2=75&dtm=2017010600";
 
@@ -118,16 +137,32 @@
 
             $('#loadData').click(function (e) 
                 {
-                /*$.ajax({
+                var lt = targetSiteLocation[1];
+                var ln = targetSiteLocation[0];
+
+                if (ln<0)
+                    {
+                        ln = 360 + (ln % 360);
+                    }
+
+
+                var lt1,lt2,ln1,ln2;   
+                lt1 = lt - 2.5;
+                lt2 = lt + 2.5;
+                ln1 = ln - 2.5;
+                ln2 = ln + 2.5;
+//                console.log(base_url + "weather?lt1=" + lt1 + "&lt2=" + lt2 + "&ln1=" + ln1 + "&ln2=" + ln2 + "&dtm=20170106");
+                vector_url = base_url + "weather?lt1=" + lt1 + "&lt2=" + lt2 + "&ln1=" + ln1 + "&ln2=" + ln2 + "&dtm=20170106";
+                raster_url = base_url + "weather_raster?lt1=" + lt1 + "&lt2=" + lt2 + "&ln1=" + ln1 + "&ln2=" + ln2 + "&dtm=2017010600";
+
+                $.ajax({
                     dataType: 'json',
                     url: vector_url,
-//                    data: data,
                     success: vector_success
-                    });*/
+                    });
                 $.ajax({
                     dataType: 'json',
                     url: raster_url,
-//                    data: data,
                     success: raster_success
                     });
 
@@ -141,6 +176,8 @@
             // Open Le current menu
             $("#layerslistnav ul.nav li.parent.active > a > span.sign").find('i:first').addClass("icon-minus");
             $("#layerslistnav ul.nav li.current").parents('ul.children').addClass("in");
+
+            
             });
      </script>
 {% endblock %}
@@ -198,19 +235,25 @@
                         <span class="divider"></span>
                         <div class="checkbox">
                             <label class="col-md-6">
-                                <input type="checkbox" value="" id="wind10mCPVisible">
-                                <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>10 m
+                                <input type="checkbox" value="" id="wind10mVisible">
+                                <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>10 m Dir
                             </label>
+                            <label class="col-md-6">
+                                <input type="checkbox" value="" id="wind10mCPVisible">
+                                <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>10 m CP
+                            </label>
+                        </div>
+                        <div class="checkbox ">
                             <label class="col-md-6">
                                 <input type="checkbox" value=""  id="wind925mbVisible">
                                 <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>925 mb
                             </label>
-                        </div>
-                        <div class="checkbox ">
                             <label  class="col-md-6">
                                 <input type="checkbox" value="" id="wind975mbVisible">
                                 <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>975 mb
                             </label>
+                        </div>
+                        <div class="checkbox ">
                             <label  class="col-md-6">
                                 <input type="checkbox" value="" id="windGustVisible">
                                 <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>Gust
@@ -399,11 +442,15 @@
             <div id="mySideBottomnav" class="bottomnavmenu">
             </div>
         </nav>
+
 {% endblock %}
 
         {% block conten_js %}
 
         <script type="text/javascript">
+
+            var targetSiteLocation;
+
             var layerDataGeoJSONFormat = new ol.format.GeoJSON();
 
             var windDataSource = new ol.source.Vector({
@@ -434,7 +481,7 @@
                         }
                     return [strokeColor,twidth];                        
                     }
-
+/*
             var wind10mLayerStyleFunction = function(feature)
                     {
                     var tval = Math.floor(parseFloat(feature.getProperties().features[0].getProperties().wd_10m));
@@ -459,6 +506,34 @@
 
                     return [new ol.style.Style({image: cStyle, text : cText})];     
                     };
+*/                    
+            var wind10mLayerStyleFunction = function(feature)
+                {
+                
+                var twdr10m = Math.floor(parseFloat(feature.getProperties().features[0].getProperties().wd_10m));
+
+                //var tws10m = Math.floor(parseFloat(feature.getProperties().features[0].getProperties().wndspd_10m));
+
+                //var twidth = 15;
+                //var arrowImageURL = "{% static 'synergymapviewer/images/arrows/gm_arrow.png' %}";
+
+                //var ccodes = getColorCodeForWindSpeed(tws10m);
+
+                //wrotation = wrotation+45; 
+                
+                var arrowImage = new ol.style.Icon({
+                        src: windArrows[3],  //"{% static 'synergymapviewer/images/arrows/gt_ar_24.png' %}",
+                    //    rotateWithView: true,
+                        rotation: twdr10m * (Math.PI / 180)
+                        });
+                /*
+                var cText = new ol.style.Text({
+                        text: tws10m.toString(),    // size.toString(),
+                        fill: new ol.style.Fill({color: '#000'})
+                        }); */
+                return [new ol.style.Style({image: arrowImage})];           
+                };
+
 
             var wind10mLayer = new ol.layer.Vector({
                     source: windClusterDataSource,
@@ -574,6 +649,21 @@
                     opacity: 0.5
                     });
 
+
+            var pointFeature = new ol.Feature(new ol.geom.Point([0, 0]));
+
+
+            var siteSelectionVectorLayer = new ol.layer.Vector({
+                source: new ol.source.Vector({
+                    features: []
+                    }),
+                style: new ol.style.Style({
+                    image: new ol.style.Icon(({
+                        src: start_map_pin
+                        }))
+                    })
+                });
+
             var map = new ol.Map({
                 target: 'map',
                 layers: [
@@ -584,7 +674,8 @@
                         tmp2mContLayer,
                         hmdt2mContLayer,
                         apcpContLayer,
-                        prContLayer
+                        prContLayer,
+                        siteSelectionVectorLayer
                     ],
                 view: new ol.View({
                     center: ol.proj.fromLonLat([37.41, 8.82], 'EPSG:4326', 'EPSG:3857'),
@@ -651,6 +742,12 @@
                     $('#legendsmenu').html("&#x2715"); 
                     }
                 });
+
+
+            $("#wind10mVisible").change(
+                function(){
+                    map.getLayer('wind10m').setVisible($(this).prop("checked"));
+                });
      
             $("#wind10mCPVisible").change(
                 function(){
@@ -675,7 +772,62 @@
             $("#pressureMSLILVisible").change(
                 function(){
                     map.getLayer('prmslCont').setVisible($(this).prop("checked"));
-                });            
+                });   
+
+            var marker = function(obj)
+                    {                    
+                    siteSelectionVectorLayer.getSource().clear();
+                    var coord4326 = ol.proj.transform(obj.coordinate, 'EPSG:3857', 'EPSG:4326');                    
+                    targetSiteLocation = coord4326;
+                    var  template = '[ {x} | {y} ]',
+                        iconStyle = new ol.style.Style({
+                          image: new ol.style.Icon({
+                            scale: .6,
+                            src: url_marker
+                          }),
+                          text: new ol.style.Text({
+                            offsetY: 25,
+                            text: ol.coordinate.format(coord4326, template, 2),
+                            font: '15px Open Sans,sans-serif',
+                            fill: new ol.style.Fill({ color: '#111' }),
+                            stroke: new ol.style.Stroke({
+                              color: '#eee', width: 2
+                            })
+                          })
+                        }),
+                    feature = new ol.Feature({
+                          type: 'removable',
+                          geometry: new ol.geom.Point(obj.coordinate)
+                        });
+                      
+                      feature.setStyle(iconStyle);
+                      siteSelectionVectorLayer.getSource().addFeature(feature);
+                    };
+/*
+            map.getViewport().addEventListener('contextmenu', function (e) {
+                console.log(e.clientX,e.clientY);
+                e.preventDefault();
+                
+                //openContextMenu(e.clientX,e.clientY);
+            });
+
+*/
+            //var url_marker = "{% static 'mapviewer/images/pin_drop.png' %}";
+            var contextmenu_items = [
+                    {
+                      text: 'Set Site Location',
+                      icon: url_marker,
+                      callback: marker
+                    }];
+
+            var contextmenu = new ContextMenu({
+                    width: 190,
+                    default_items: true,
+                    items: contextmenu_items
+                    });
+
+            map.addControl(contextmenu);
+
         </script>
         {% endblock %}
 

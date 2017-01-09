@@ -475,7 +475,7 @@ def get_contours(bottom,top,left,right,t,fv):
 	return prmsl_ws10m_temp2m_geojson_dump
 
 
-"""
+
 if __name__ ==  "__main__":
 #	b=19.926877111209265&t=21.652322721683646&l=70.91198729351163&r=73.21911619976163
 #	get_pres_msl_contour(left,bottom,top,right,t,fv)
@@ -487,7 +487,7 @@ if __name__ ==  "__main__":
 	with open('contours.geojson', 'w') as fileout:
 	    fileout.write(geojson_data)    
 
-"""
+
 
 
 
