@@ -103,7 +103,7 @@ body {
 	padding-left: 6px;
 	left:48%;
 	top:0%;
-	transition: 0.9s;
+	transition: 0.4s;
 	}
 
 .topmenuexpand
@@ -118,7 +118,7 @@ body {
 	padding-left: 6px;
 	left:48%;
 	top:10%;
-	transition: 0.9s;
+	transition: 0.4s;
 	}
 
 
@@ -134,7 +134,7 @@ body {
 	padding-left: 6px;
 	left:48%;
 	bottom:0%;
-	transition: 0.9s;
+	transition: 0.5s;
 	}
 
 .bottommenuexpand
@@ -148,9 +148,9 @@ body {
 	background-color: #67C5C2;
 	padding-left: 6px;
 	left:48%;
-	bottom:15%;
+	bottom:10%;
 	background-color: #34DDDD;
-	transition: 0.9s;
+	transition: 0.5s;
 	}
 
 
@@ -322,20 +322,20 @@ body {
     left:0;   
     background-color: #111;
     overflow-x: hidden;
-    transition: 0.9s;
+    transition: 0.5s;
     padding-top: 0px;
 }
 
 .bottomnavmenuexpand {
-    height: 15%;
+    height: 10%;
     width: 100%;
     position: fixed;
     z-index: 1;
     left:0;    
-    top:85%;   
+    top:90%;   
     background-color: #111;
     overflow-x: hidden;
-    transition: 0.9s;
+    transition: 0.5s;
     padding-top: 0px;
 }
 
@@ -375,9 +375,9 @@ body {
     z-index: 1;
     top: 0;
 	left:0;   
-    background-color: #111;
+    background-color: #fff;
     overflow-x: hidden;
-    transition: 0.9s;
+    transition: 0.4s;
     padding-top: 0px;
 }
 
@@ -388,9 +388,9 @@ body {
     z-index: 1;
 	left:0;
 	top:0;
-    background-color: #111;
+    background-color: #eee;
     overflow-x: hidden;
-    transition: 0.9s;
+    transition: 0.4s;
     padding-top: 0px;
 }
 
@@ -469,3 +469,7 @@ body {
 	margin-top: 10px;
 }
 
+.tcenter{
+padding: 5px;
+text-align:center;
+}

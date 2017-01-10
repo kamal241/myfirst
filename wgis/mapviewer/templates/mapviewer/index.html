@@ -6,6 +6,7 @@
     <link href="{% static 'mapviewer/css/full.css' %}" rel="stylesheet" media="screen">
     <link href="{% static 'mapviewer/css/layersnav.css' %}" rel="stylesheet" media="screen">
     <link rel="stylesheet" href="{% static 'mapviewer/css/ol3-contextmenu.min.css' %}">
+    
 {% endblock %}
 
 
@@ -43,9 +44,7 @@
 
         $(function() 
             {
-
-
-
+            var cindex = 0;
             if (ol.Map.prototype.getLayer === undefined) 
                 {    
                 ol.Map.prototype.getLayer = function (id) 
@@ -145,13 +144,12 @@
                         ln = 360 + (ln % 360);
                     }
 
-
                 var lt1,lt2,ln1,ln2;   
                 lt1 = lt - 2.5;
                 lt2 = lt + 2.5;
                 ln1 = ln - 2.5;
                 ln2 = ln + 2.5;
-//                console.log(base_url + "weather?lt1=" + lt1 + "&lt2=" + lt2 + "&ln1=" + ln1 + "&ln2=" + ln2 + "&dtm=20170106");
+
                 vector_url = base_url + "weather?lt1=" + lt1 + "&lt2=" + lt2 + "&ln1=" + ln1 + "&ln2=" + ln2 + "&dtm=20170106";
                 raster_url = base_url + "weather_raster?lt1=" + lt1 + "&lt2=" + lt2 + "&ln1=" + ln1 + "&ln2=" + ln2 + "&dtm=2017010600";
 
@@ -169,6 +167,15 @@
 
                 });
 
+            $('#nextData').click(function (e) 
+                {
+
+                wind10mLayer.getSource().clear();
+                windDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(wind_data[(++cindex)%4].wd_10m,{'featureProjection':'EPSG:3857'}));
+                console.log("Loading data for " + (cindex%4));
+                });
+
+
             $("#layerslistnav ul.nav li.parent > a > span.sign").click(function(){          
                 $(this).find('i:first').toggleClass("icon-minus");      
                 }); 
@@ -177,7 +184,6 @@
             $("#layerslistnav ul.nav li.parent.active > a > span.sign").find('i:first').addClass("icon-minus");
             $("#layerslistnav ul.nav li.current").parents('ul.children').addClass("in");
 
-            
             });
      </script>
 {% endblock %}
@@ -376,6 +382,8 @@
                             </label>        
                         </div>     
                         <button id="loadData" type="button" class="btn btn-primary" > Load </button>                    
+                        <button id="nextData" type="button" class="btn btn-primary" > > </button>                    
+
                       </div>
                     </div>
                   </div>
@@ -426,20 +434,168 @@
 
         <nav>
             <div id="mySideRightnav" class="rightnavmenu">
-                <a href="#">About</a>
-                <a href="#">Services</a>
-                <a href="#">Clients</a>
-                <a href="#">Contact</a>
             </div>
         </nav>
 
         <nav>
             <div id="mySideTopnav" class="topnavmenu">
+                <div class="table-responsive">
+                    <table class="table  table-bordered">
+                        <tr class="text-center">
+                            <th colspan="8" class="text-center">MONDAY</th>
+                            <th colspan="8" class="text-center">TUESDAY</th>
+                            <th colspan="8" class="text-center">WEDNESDAY</th>
+                            <th colspan="8" class="text-center">THURSDAY</th>
+                            <th colspan="8" class="text-center">FRIDAY</th>
+                            <th colspan="4" class="text-center">SATURDAY</th> 
+                            <th colspan="4" class="text-center">SUNDAY</th>                                                        
+                        </tr>
+                        <tr>
+                            <td>00</td>
+                            <td>03</td>
+                            <td>06</td>
+                            <td>09</td>
+                            <td>12</td>                                                                                                                
+                            <td>15</td>
+                            <td>18</td>
+                            <td>21</td>
+
+                            <td>00</td>
+                            <td>03</td>
+                            <td>06</td>
+                            <td>09</td>
+                            <td>12</td>                                                                                                                
+                            <td>15</td>
+                            <td>18</td>
+                            <td>21</td>
+                            
+                            <td>00</td>
+                            <td>03</td>
+                            <td>06</td>
+                            <td>09</td>
+                            <td>12</td>                                                                                                                
+                            <td>15</td>
+                            <td>18</td>
+                            <td>21</td>
+                            
+                            <td>00</td>
+                            <td>03</td>
+                            <td>06</td>
+                            <td>09</td>
+                            <td>12</td>                                                                                                                
+                            <td>15</td>
+                            <td>18</td>
+                            <td>21</td>
+                            
+                            <td>00</td>
+                            <td>03</td>
+                            <td>06</td>
+                            <td>09</td>
+                            <td>12</td>                                                                                                                
+                            <td>15</td>
+                            <td>18</td>
+                            <td>21</td>
+                            
+                            <td>00</td>
+                            <td>06</td>
+                            <td>12</td>
+                            <td>18</td>
+
+                            <td>00</td>
+                            <td>06</td>
+                            <td>12</td>
+                            <td>18</td>
+                        </tr>
+                    </table>
+                </div>
             </div>
+                <!--
+                <div class="col-md-1">
+                    <div class="tcenter btn-group" id="navplayer">          
+                        <a href="#" class="btn btn-inverse"><i class="glyphicon glyphicon-backward"></i></a>
+                        <a href="#" class="btn btn-inverse"><i class="glyphicon glyphicon-stop"></i></a>
+                        <a href="#" class="btn btn-inverse"><i class="glyphicon glyphicon-play"></i></a>
+                        <a href="#" class="btn btn-inverse"><i class="glyphicon glyphicon-forward"></i></a>             
+                    </div>
+                </div>
+                <div class="container col-md-5">
+                    <div class="row">
+                        <div class="col">
+                          1 of 3
+                        </div>
+                        <div class="col-6">
+                          2 of 3 (wider)
+                        </div>
+                        <div class="col">
+                          3 of 3
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                          1 of 3
+                        </div>
+                        <div class="col-5">
+                          2 of 3 (wider)
+                        </div>
+                        <div class="col">
+                          3 of 3
+                        </div>
+                    </div>
+                </div> -->            
         </nav>
 
         <nav>
             <div id="mySideBottomnav" class="bottomnavmenu">
+                <div class="row">
+                    <div class="col-sm-2">
+                        <div class="well well-sm">
+                            <div class="tcenter btn-group" id="navplayer">          
+                                <a href="#" class="btn btn-inverse btn-sm"><i class="glyphicon glyphicon-backward"></i></a>
+                                <a href="#" class="btn btn-inverse btn-sm"><i class="glyphicon glyphicon-stop"></i></a>
+                                <a href="#" class="btn btn-inverse btn-sm"><i class="glyphicon glyphicon-play"></i></a>
+                                <a href="#" class="btn btn-inverse btn-sm"><i class="glyphicon glyphicon-forward"></i></a>             
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-9">
+                        <div class="well well-sm">
+                            <div class="row">
+                                <div class="col-sm-2 text-center">MONDAY</div>
+                                <div class="col-sm-2 text-center">TUESDAY</div>
+                                <div class="col-sm-2 text-center">WEDNESDAY</div>
+                                <div class="col-sm-2 text-center">THURSDAY</div>
+                                <div class="col-sm-2 text-center">FRIDAY</div>
+                                <div class="col-sm-2 text-center">SATURDAY</div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-2">
+                                    <div class="row">
+                                        <button class="btn-primary col-sm-1">01</button>
+                                        <button class="btn-primary col-sm-1">04</button>
+                                        <button class="btn-primary col-sm-1">07</button>
+                                        <button class="btn-primary col-sm-1">10</button>
+                                        <button class="btn-primary col-sm-1">13</button>
+                                        <button class="btn-primary col-sm-1">16</button>
+                                        <button class="btn-primary col-sm-1">19</button>
+                                        <button class="btn-primary col-sm-1">22</button>
+                                    </div>
+                                </div>
+                                <div class="col-sm-2">
+                                    <div class="row">
+                                        <button class="btn-primary col-sm-1">01</button>
+                                        <button class="btn-primary col-sm-1">04</button>
+                                        <button class="btn-primary col-sm-1">07</button>
+                                        <button class="btn-primary col-sm-1">10</button>
+                                        <button class="btn-primary col-sm-1">13</button>
+                                        <button class="btn-primary col-sm-1">16</button>
+                                        <button class="btn-primary col-sm-1">19</button>
+                                        <button class="btn-primary col-sm-1">22</button>
+                                    </div>
+                                </div>    
+                            </div>
+                        </div>
+                    </div>
+                </div>                
             </div>
         </nav>
 
@@ -533,7 +689,6 @@
                         }); */
                 return [new ol.style.Style({image: arrowImage})];           
                 };
-
 
             var wind10mLayer = new ol.layer.Vector({
                     source: windClusterDataSource,
@@ -649,9 +804,7 @@
                     opacity: 0.5
                     });
 
-
             var pointFeature = new ol.Feature(new ol.geom.Point([0, 0]));
-
 
             var siteSelectionVectorLayer = new ol.layer.Vector({
                 source: new ol.source.Vector({
@@ -743,7 +896,6 @@
                     }
                 });
 
-
             $("#wind10mVisible").change(
                 function(){
                     map.getLayer('wind10m').setVisible($(this).prop("checked"));
@@ -803,16 +955,7 @@
                       feature.setStyle(iconStyle);
                       siteSelectionVectorLayer.getSource().addFeature(feature);
                     };
-/*
-            map.getViewport().addEventListener('contextmenu', function (e) {
-                console.log(e.clientX,e.clientY);
-                e.preventDefault();
-                
-                //openContextMenu(e.clientX,e.clientY);
-            });
 
-*/
-            //var url_marker = "{% static 'mapviewer/images/pin_drop.png' %}";
             var contextmenu_items = [
                     {
                       text: 'Set Site Location',
@@ -827,6 +970,8 @@
                     });
 
             map.addControl(contextmenu);
+            
+
 
         </script>
         {% endblock %}
