@@ -110,6 +110,9 @@
                             });
 
                     windDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(wind_data[0].wd_10m,{'featureProjection':'EPSG:3857'}));
+                    wind925DataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(wind_data[0].wd_925m,{'featureProjection':'EPSG:3857'}));
+                    wind975DataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(wind_data[0].wd_975m,{'featureProjection':'EPSG:3857'}));
+                    
                     };
 
             var raster_success = function(data)
@@ -134,8 +137,37 @@
 
                     };
 
+            function getTimeStampForData() 
+                {
+                var cdate = new Date();
+                var tzoffzet = cdate.getTimezoneOffset();
+                var fcids = ['00','06','12','18'];
+                var hrs = cdate.getHours();
+
+                var dohrs = hrs - 5;
+                var cday = cdate.getDay();
+                if (dohrs<0)
+                    {
+                    cdate = new Date((new Date).valueOf() - 86350989);
+                    cdate.setHours(dohrs);
+                    }
+                else
+                    {
+                    cdate.setHours(dohrs);
+                    }
+                var didx = fcids[parseInt(dohrs/6)];
+
+
+                var mnth = cdate.getMonth()+1;
+                var day = cdate.getDate();
+                var dtm = cdate.getFullYear().toString()+(mnth<10?("0" + mnth.toString()):mnth.toString()) +(day<10?("0" + day.toString()):day.toString()) + didx;
+                return dtm;
+                }
+
             $('#loadData').click(function (e) 
                 {
+
+                console.log("TimeStamp is "+getTimeStampForData());
                 var lt = targetSiteLocation[1];
                 var ln = targetSiteLocation[0];
 
@@ -616,6 +648,21 @@
 
             var windClusterDataSource = new ol.source.Cluster({source : windDataSource});
 
+            var wind925DataSource = new ol.source.Vector({
+                    format: layerDataGeoJSONFormat,
+                    projection: 'EPSG:3857',
+                    });
+
+            var wind975DataSource = new ol.source.Vector({
+                    format: layerDataGeoJSONFormat,
+                    projection: 'EPSG:3857',
+                    });
+
+            var wind925ClusterDataSource = new ol.source.Cluster({source : wind925DataSource});
+
+            var wind975ClusterDataSource = new ol.source.Cluster({source : wind975DataSource});
+
+
             function getColorCodeForTemprature(tmp)
                     {
                     var strokeColor = [2,8,21,0.5];
@@ -668,25 +715,13 @@
                 
                 var twdr10m = Math.floor(parseFloat(feature.getProperties().features[0].getProperties().wd_10m));
 
-                //var tws10m = Math.floor(parseFloat(feature.getProperties().features[0].getProperties().wndspd_10m));
-
-                //var twidth = 15;
-                //var arrowImageURL = "{% static 'synergymapviewer/images/arrows/gm_arrow.png' %}";
-
-                //var ccodes = getColorCodeForWindSpeed(tws10m);
-
-                //wrotation = wrotation+45; 
-                
+               
                 var arrowImage = new ol.style.Icon({
                         src: windArrows[3],  //"{% static 'synergymapviewer/images/arrows/gt_ar_24.png' %}",
-                    //    rotateWithView: true,
+                        rotateWithView: true,
                         rotation: twdr10m * (Math.PI / 180)
                         });
-                /*
-                var cText = new ol.style.Text({
-                        text: tws10m.toString(),    // size.toString(),
-                        fill: new ol.style.Fill({color: '#000'})
-                        }); */
+
                 return [new ol.style.Style({image: arrowImage})];           
                 };
 
@@ -695,6 +730,19 @@
                     style: wind10mLayerStyleFunction,
                     layerid: 'wind10m'                    
                     });
+
+            var wind925mbLayer = new ol.layer.Vector({
+                    source: wind925ClusterDataSource,
+                    style: wind10mLayerStyleFunction,
+                    layerid: 'wind925mb'                    
+                    });
+
+            var wind975mbLayer = new ol.layer.Vector({
+                    source: wind975ClusterDataSource,
+                    style: wind10mLayerStyleFunction,
+                    layerid: 'wind975mb'                    
+                    });
+
 
             var ws10mContDataSource = new ol.source.Vector({
                 format: layerDataGeoJSONFormat,
@@ -823,6 +871,8 @@
                         new ol.layer.Tile({
                         source: new ol.source.OSM()}),
                         wind10mLayer,
+                        wind925mbLayer,
+                        wind975mbLayer,
                         ws10mContLayer,
                         tmp2mContLayer,
                         hmdt2mContLayer,
@@ -900,7 +950,17 @@
                 function(){
                     map.getLayer('wind10m').setVisible($(this).prop("checked"));
                 });
-     
+
+            $("#wind925mbVisible").change(
+                function(){
+                    map.getLayer('wind925mb').setVisible($(this).prop("checked"));
+                });     
+
+            $("#wind975mbVisible").change(
+                function(){
+                    map.getLayer('wind975mb').setVisible($(this).prop("checked"));
+                });
+
             $("#wind10mCPVisible").change(
                 function(){
                     map.getLayer('ws10mCont').setVisible($(this).prop("checked"));
