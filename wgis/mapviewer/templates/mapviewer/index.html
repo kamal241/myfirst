@@ -80,6 +80,8 @@
                     {
                     wdata = data;
                     wind_data = {};
+                    cloud_data = {};
+
                     wind_data[0] = {"gust":{"type": "FeatureCollection","features": []},"wd_10m":{"type": "FeatureCollection","features": []},"ws_10m":{"type": "FeatureCollection","features": []},"wd_925m":{"type": "FeatureCollection","features": []},"ws_925m":{"type": "FeatureCollection","features": []},"wd_975m":{"type": "FeatureCollection","features": []},"ws_975m":{"type": "FeatureCollection","features": []}};
                     wind_data[1] = {"gust":{"type": "FeatureCollection","features": []},"wd_10m":{"type": "FeatureCollection","features": []},"ws_10m":{"type": "FeatureCollection","features": []},"wd_925m":{"type": "FeatureCollection","features": []},"ws_925m":{"type": "FeatureCollection","features": []},"wd_975m":{"type": "FeatureCollection","features": []},"ws_975m":{"type": "FeatureCollection","features": []}};
                     wind_data[2] = {"gust":{"type": "FeatureCollection","features": []},"wd_10m":{"type": "FeatureCollection","features": []},"ws_10m":{"type": "FeatureCollection","features": []},"wd_925m":{"type": "FeatureCollection","features": []},"ws_925m":{"type": "FeatureCollection","features": []},"wd_975m":{"type": "FeatureCollection","features": []},"ws_975m":{"type": "FeatureCollection","features": []}};
@@ -87,11 +89,25 @@
                     wind_data[4] = {"gust":{"type": "FeatureCollection","features": []},"wd_10m":{"type": "FeatureCollection","features": []},"ws_10m":{"type": "FeatureCollection","features": []},"wd_925m":{"type": "FeatureCollection","features": []},"ws_925m":{"type": "FeatureCollection","features": []},"wd_975m":{"type": "FeatureCollection","features": []},"ws_975m":{"type": "FeatureCollection","features": []}};
                     wind_data[5] = {"gust":{"type": "FeatureCollection","features": []},"wd_10m":{"type": "FeatureCollection","features": []},"ws_10m":{"type": "FeatureCollection","features": []},"wd_925m":{"type": "FeatureCollection","features": []},"ws_925m":{"type": "FeatureCollection","features": []},"wd_975m":{"type": "FeatureCollection","features": []},"ws_975m":{"type": "FeatureCollection","features": []}};
 
+                    cloud_data[0] = {"lcl":{"type": "FeatureCollection","features": []},"mcl":{"type": "FeatureCollection","features": []},"ccl":{"type": "FeatureCollection","features": []},"lcbl":{"type": "FeatureCollection","features": []},"mcbl":{"type": "FeatureCollection","features": []},"ccbl":{"type": "FeatureCollection","features": []}};
+
+                    cloud_data[1] = {"lcl":{"type": "FeatureCollection","features": []},"mcl":{"type": "FeatureCollection","features": []},"ccl":{"type": "FeatureCollection","features": []},"lcbl":{"type": "FeatureCollection","features": []},"mcbl":{"type": "FeatureCollection","features": []},"ccbl":{"type": "FeatureCollection","features": []}};
+
+                    cloud_data[2] = {"lcl":{"type": "FeatureCollection","features": []},"mcl":{"type": "FeatureCollection","features": []},"ccl":{"type": "FeatureCollection","features": []},"lcbl":{"type": "FeatureCollection","features": []},"mcbl":{"type": "FeatureCollection","features": []},"ccbl":{"type": "FeatureCollection","features": []}};
+
+                    cloud_data[3] = {"lcl":{"type": "FeatureCollection","features": []},"mcl":{"type": "FeatureCollection","features": []},"ccl":{"type": "FeatureCollection","features": []},"lcbl":{"type": "FeatureCollection","features": []},"mcbl":{"type": "FeatureCollection","features": []},"ccbl":{"type": "FeatureCollection","features": []}};
+
+                    cloud_data[4] = {"lcl":{"type": "FeatureCollection","features": []},"mcl":{"type": "FeatureCollection","features": []},"ccl":{"type": "FeatureCollection","features": []},"lcbl":{"type": "FeatureCollection","features": []},"mcbl":{"type": "FeatureCollection","features": []},"ccbl":{"type": "FeatureCollection","features": []}};
+
+                    cloud_data[5] = {"lcl":{"type": "FeatureCollection","features": []},"mcl":{"type": "FeatureCollection","features": []},"ccl":{"type": "FeatureCollection","features": []},"lcbl":{"type": "FeatureCollection","features": []},"mcbl":{"type": "FeatureCollection","features": []},"ccbl":{"type": "FeatureCollection","features": []}};
+
+
                     $.each(wdata.features, 
                         function (key, val)             // All locations
                             {
                             dlocation = val[0].geometry; 
                             dwind = val[0].properties.wind;
+                            dcloud = val[0].properties.cloud;
 
                             $.each(dwind, 
                                 function (key2, val2)   // All levels
@@ -107,12 +123,30 @@
                                         wind_data[dk][key2].features.push(feature);
                                         }); 
                                     });
+
+                            $.each(dcloud, 
+                                function (key2, val2)   // All levels
+                                    {
+                                    var tpata = {};
+                                    var tdata = val2;
+                                    $.each(tdata,function(dk,dv)
+                                        {
+                                        var feature = {};
+                                        feature["geometry"] = dlocation;
+                                        feature["properties"] = {};
+                                        feature["properties"][key2] = dv;
+                                        cloud_data[dk][key2].features.push(feature);
+                                        }); 
+                                    });
+
                             });
 
                     windDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(wind_data[0].wd_10m,{'featureProjection':'EPSG:3857'}));
                     wind925DataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(wind_data[0].wd_925m,{'featureProjection':'EPSG:3857'}));
                     wind975DataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(wind_data[0].wd_975m,{'featureProjection':'EPSG:3857'}));
-                    
+                    lclCloudDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(cloud_data[0].lcl,{'featureProjection':'EPSG:3857'}));
+                    mclCloudDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(cloud_data[0].mcl,{'featureProjection':'EPSG:3857'}));
+                    cclCloudDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(cloud_data[0].ccl,{'featureProjection':'EPSG:3857'}));
                     };
 
             var raster_success = function(data)
@@ -168,6 +202,7 @@
                 {
 
                 console.log("TimeStamp is "+getTimeStampForData());
+
                 var lt = targetSiteLocation[1];
                 var ln = targetSiteLocation[0];
 
@@ -184,6 +219,10 @@
 
                 vector_url = base_url + "weather?lt1=" + lt1 + "&lt2=" + lt2 + "&ln1=" + ln1 + "&ln2=" + ln2 + "&dtm=20170106";
                 raster_url = base_url + "weather_raster?lt1=" + lt1 + "&lt2=" + lt2 + "&ln1=" + ln1 + "&ln2=" + ln2 + "&dtm=2017010600";
+
+
+
+
 
                 $.ajax({
                     dataType: 'json',
@@ -301,19 +340,19 @@
                         <span class="divider"></span>
                         <div class="checkbox">
                             <label class="col-md-6">
-                                <input type="checkbox" value="">
+                                <input type="checkbox" value=""  id="tcdcLowVisible">
                                 <span class="cr">
                                     <i class="cr-icon glyphicon glyphicon-ok"></i>
                                 </span>Low (%)
                             </label>
                             <label class="col-md-6">
-                                <input type="checkbox" value="" >
+                                <input type="checkbox" value=""  id="tcdcMiddleVisible">
                                 <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>Middle (%)
                             </label>
                         </div>
                         <div class="checkbox ">
                             <label  class="col-md-6">
-                                <input type="checkbox" value="">
+                                <input type="checkbox" value="" id="tcdcConvectiveVisible">
                                 <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>Convective (%)
                             </label>  
                         </div>
@@ -662,7 +701,6 @@
 
             var wind975ClusterDataSource = new ol.source.Cluster({source : wind975DataSource});
 
-
             function getColorCodeForTemprature(tmp)
                     {
                     var strokeColor = [2,8,21,0.5];
@@ -709,7 +747,9 @@
 
                     return [new ol.style.Style({image: cStyle, text : cText})];     
                     };
-*/                    
+*/          
+            
+
             var wind10mLayerStyleFunction = function(feature)
                 {
                 
@@ -742,7 +782,6 @@
                     style: wind10mLayerStyleFunction,
                     layerid: 'wind975mb'                    
                     });
-
 
             var ws10mContDataSource = new ol.source.Vector({
                 format: layerDataGeoJSONFormat,
@@ -816,6 +855,147 @@
                     opacity: 1
                     });
 
+            function getColorCodeForTCDC(tcdcVal)
+                {
+                var strokeColor = [2, 196, 21, 0.5];
+                var twidth = 15;
+                    
+                if(tcdcVal == 999999 || tcdcVal==0)
+                            {
+                            tcdcVal = "";
+                            strokeColor = [2, 2, 2,0];      //'#020815';
+                            twidth = 10;
+                            }   
+                else if(tcdcVal < 26 && tcdcVal > 0) 
+                    {
+                    strokeColor = [2, 128, 21, 0.5];    //'#020815';
+                    twidth = 15;
+                    }
+                else if(tcdcVal>=26 && tcdcVal<76) 
+                    {
+                    strokeColor = [25, 140, 255,0.5];   //'#198cff';
+                    twidth = 17;
+                    }
+                else if(tcdcVal>=76) 
+                    {
+                    strokeColor = [270, 70 ,90, 0.5];//'#f61212';
+                    twidth = 20;
+                    }
+
+                return [strokeColor,twidth];    
+                };
+
+            var lclCloudDataSource = new ol.source.Vector({
+                format: layerDataGeoJSONFormat,
+                projection: 'EPSG:3857',
+                });
+
+            var mclCloudDataSource = new ol.source.Vector({
+                format: layerDataGeoJSONFormat,
+                projection: 'EPSG:3857',
+                });
+
+            var cclCloudDataSource = new ol.source.Vector({
+                format: layerDataGeoJSONFormat,
+                projection: 'EPSG:3857',
+                });
+
+            var lclCloudClusterDataSource = new ol.source.Cluster({source : lclCloudDataSource});
+            var mclCloudClusterDataSource = new ol.source.Cluster({source : mclCloudDataSource});
+            var cclCloudClusterDataSource = new ol.source.Cluster({source : cclCloudDataSource});
+
+            var tcdcLowStyleFunction = function(feature)
+                {
+                var tval = parseInt(feature.getProperties().features[0].getProperties().lcl);
+                var ccodes = getColorCodeForTCDC(tval);
+                var stval = "";
+                if(tval > 0 && tval<=100)
+                    stval = tval.toString();
+
+                var diamondShape = new ol.style.RegularShape({
+                        fill: new ol.style.Fill({color: ccodes[0]}),
+                        stroke: new ol.style.Stroke({color: ccodes[0] ,width: 1}),
+                        points: 6,
+                        radius: ccodes[1],
+                        angle: Math.PI / 6
+                        });
+
+                var cText = new ol.style.Text({
+                        text: stval,    // size.toString(),
+                        fill: new ol.style.Fill({color: '#fff'})
+                        });
+
+                return [new ol.style.Style({image: diamondShape, text : cText})];
+                };
+
+            var tcdcMiddleStyleFunction = function(feature)
+                {
+                var tval = parseInt(feature.getProperties().features[0].getProperties().mcl);
+                var ccodes = getColorCodeForTCDC(tval);
+                var stval = "";
+                if(tval > 0 && tval<=100)
+                    stval = tval.toString();
+
+                var diamondShape = new ol.style.RegularShape({
+                        fill: new ol.style.Fill({color: ccodes[0]}),
+                        stroke: new ol.style.Stroke({color: ccodes[0] ,width: 1}),
+                        points: 6,
+                        radius: ccodes[1],
+                        angle: Math.PI / 6
+                        });
+
+                var cText = new ol.style.Text({
+                        text: stval,    // size.toString(),
+                        fill: new ol.style.Fill({color: '#fff'})
+                        });
+
+                return [new ol.style.Style({image: diamondShape, text : cText})];
+
+                };
+
+            var tcdcConvectiveStyleFunction = function(feature)
+                {
+                var tval = parseInt(feature.getProperties().features[0].getProperties().ccl);
+                var ccodes = getColorCodeForTCDC(tval);
+                    var stval = "";
+                    if(tval > 0 && tval<=100)
+                            stval = tval.toString();
+
+                var diamondShape = new ol.style.RegularShape({
+                        fill: new ol.style.Fill({color: ccodes[0]}),
+                        stroke: new ol.style.Stroke({color: ccodes[0] ,width: 1}),
+                        points: 6,
+                        radius: ccodes[1],
+                        angle: Math.PI / 6
+                        });
+
+                var cText = new ol.style.Text({
+                        text: stval,    // size.toString(),
+                        fill: new ol.style.Fill({color: '#fff'})
+                        });
+
+                return [new ol.style.Style({image: diamondShape, text : cText})];
+
+                };  
+
+            var tcdcLowLayer = new ol.layer.Vector({
+                source: lclCloudClusterDataSource,
+                style: tcdcLowStyleFunction,
+                layerid: 'tcdcLow'
+                });
+
+            var tcdcMiddleLayer = new ol.layer.Vector({
+                source: mclCloudClusterDataSource,
+                style: tcdcMiddleStyleFunction,
+                layerid: 'tcdcMiddle'
+                });
+
+            var tcdcConvectiveLayer = new ol.layer.Vector({
+                source: cclCloudClusterDataSource,
+                style: tcdcConvectiveStyleFunction,
+                layerid: 'tcdcConvective'
+                });
+
             var tmp2mContDataSource = new ol.source.Vector({
                 format: layerDataGeoJSONFormat,
                 projection: 'EPSG:3857',
@@ -876,6 +1056,9 @@
                         ws10mContLayer,
                         tmp2mContLayer,
                         hmdt2mContLayer,
+                        tcdcLowLayer,
+                        tcdcMiddleLayer,
+                        tcdcConvectiveLayer,
                         apcpContLayer,
                         prContLayer,
                         siteSelectionVectorLayer
@@ -985,6 +1168,22 @@
                 function(){
                     map.getLayer('prmslCont').setVisible($(this).prop("checked"));
                 });   
+
+            
+            $("#tcdcLowVisible").change(
+                function(){
+                map.getLayer('tcdcLow').setVisible($(this).prop("checked"));
+                });
+
+            $("#tcdcMiddleVisible").change(
+                function(){
+                map.getLayer('tcdcMiddle').setVisible($(this).prop("checked"));
+                });
+
+            $("#tcdcConvectiveVisible").change(
+                function(){
+                map.getLayer('tcdcConvective').setVisible($(this).prop("checked"));
+                });
 
             var marker = function(obj)
                     {                    
