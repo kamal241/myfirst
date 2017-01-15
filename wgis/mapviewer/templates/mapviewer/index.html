@@ -72,8 +72,8 @@
                  }
 
             var base_url = "http://localhost:8000/mapviewer/";
-            var vector_url = "http://localhost:8000/mapviewer/weather?lt1=20&lt2=25&ln1=70&ln2=75&dtm=20170106";
-            var raster_url = "http://localhost:8000/mapviewer/weather_raster?lt1=20&lt2=25&ln1=70&ln2=75&dtm=2017010600";
+            var vector_url = "http://localhost:8000/mapviewer/weather?lt1=20&lt2=25&ln1=70&ln2=75&dtm=20170114";
+            var raster_url = "http://localhost:8000/mapviewer/weather_raster?lt1=20&lt2=25&ln1=70&ln2=75&dtm=2017011400";
 
 
             var vector_success = function(data)
@@ -147,6 +147,10 @@
                     lclCloudDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(cloud_data[0].lcl,{'featureProjection':'EPSG:3857'}));
                     mclCloudDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(cloud_data[0].mcl,{'featureProjection':'EPSG:3857'}));
                     cclCloudDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(cloud_data[0].ccl,{'featureProjection':'EPSG:3857'}));
+                    lcblCloudDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(cloud_data[0].lcbl,{'featureProjection':'EPSG:3857'}));
+                    mcblCloudDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(cloud_data[0].mcbl,{'featureProjection':'EPSG:3857'}));
+                    ccblCloudDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(cloud_data[0].ccbl,{'featureProjection':'EPSG:3857'}));
+
                     };
 
             var raster_success = function(data)
@@ -169,6 +173,29 @@
                     responseAPCPContData = getByName(data,'APCP');
                     apcpContDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(responseAPCPContData,{'featureProjection':'EPSG:3857'}));
 
+                    };
+
+            var swave_success = function(data)
+                    {
+                    /*    
+                    responseWS10mContData = getByName(data,'WS10m');
+
+                    ws10mContDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(responseWS10mContData,{'featureProjection':'EPSG:3857'}));
+                            
+                        
+                    responsePRMSLContData = getByName(data,'PRMSL');
+
+                    prContDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(responsePRMSLContData,{'featureProjection':'EPSG:3857'}));
+                            
+                    responseTMP2mContData = getByName(data,'TMP2m');
+                    tmp2mContDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(responseTMP2mContData,{'featureProjection':'EPSG:3857'}));
+                            
+                    responseHMDT2mContData = getByName(data,'HMDT2m');
+                    hmdt2mContDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(responseHMDT2mContData,{'featureProjection':'EPSG:3857'}));
+                    
+                    responseAPCPContData = getByName(data,'APCP');
+                    apcpContDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(responseAPCPContData,{'featureProjection':'EPSG:3857'}));
+                    */
                     };
 
             function getTimeStampForData() 
@@ -217,9 +244,11 @@
                 ln1 = ln - 2.5;
                 ln2 = ln + 2.5;
 
-                vector_url = base_url + "weather?lt1=" + lt1 + "&lt2=" + lt2 + "&ln1=" + ln1 + "&ln2=" + ln2 + "&dtm=20170106";
-                raster_url = base_url + "weather_raster?lt1=" + lt1 + "&lt2=" + lt2 + "&ln1=" + ln1 + "&ln2=" + ln2 + "&dtm=2017010600";
+                vector_url = base_url + "weather?lt1=" + lt1 + "&lt2=" + lt2 + "&ln1=" + ln1 + "&ln2=" + ln2 + "&dtm=20170114";
+                
+                raster_url = base_url + "weather_raster?lt1=" + lt1 + "&lt2=" + lt2 + "&ln1=" + ln1 + "&ln2=" + ln2 + "&dtm=2017011400";
 
+                swave_url = base_url + "weather_swave?lt1=" + lt1 + "&lt2=" + lt2 + "&ln1=" + ln1 + "&ln2=" + ln2 + "&dtm=2016112200";
 
 
 
@@ -229,12 +258,18 @@
                     url: vector_url,
                     success: vector_success
                     });
+
                 $.ajax({
                     dataType: 'json',
                     url: raster_url,
                     success: raster_success
                     });
 
+                $.ajax({
+                    dataType: 'json',
+                    url: swave_url,
+                    success: swave_success
+                    });
 
                 });
 
@@ -360,19 +395,19 @@
                         <span class="divider"></span>
                         <div class="checkbox">
                             <label class="col-md-6">
-                                <input type="checkbox" value="">
+                                <input type="checkbox" value="" id="presLowVisible">
                                 <span class="cr">
                                     <i class="cr-icon glyphicon glyphicon-ok"></i>
                                 </span>Low (feet)
                             </label>
                             <label class="col-md-6">
-                                <input type="checkbox" value="" >
+                                <input type="checkbox" value="" id="presMiddleVisible">
                                 <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>Middle (feet)
                             </label>
                         </div>
                         <div class="checkbox ">
                             <label  class="col-md-6">
-                                <input type="checkbox" value="">
+                                <input type="checkbox" value="" id="presConvectiveVisible">
                                 <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>High (feet)
                             </label>  
                         </div>
@@ -768,19 +803,22 @@
             var wind10mLayer = new ol.layer.Vector({
                     source: windClusterDataSource,
                     style: wind10mLayerStyleFunction,
-                    layerid: 'wind10m'                    
+                    layerid: 'wind10m',
+                    visible: false                   
                     });
 
             var wind925mbLayer = new ol.layer.Vector({
                     source: wind925ClusterDataSource,
                     style: wind10mLayerStyleFunction,
-                    layerid: 'wind925mb'                    
+                    layerid: 'wind925mb',
+                    visible: false             
                     });
 
             var wind975mbLayer = new ol.layer.Vector({
                     source: wind975ClusterDataSource,
                     style: wind10mLayerStyleFunction,
-                    layerid: 'wind975mb'                    
+                    layerid: 'wind975mb',
+                    visible: false                    
                     });
 
             var ws10mContDataSource = new ol.source.Vector({
@@ -816,7 +854,8 @@
                     source: ws10mContDataSource,
                     style: ws10mContLayerStyleFunction, 
                     layerid: 'ws10mCont',
-                    opacity: 0.5
+                    opacity: 0.5,
+                    visible: false    
                     });
 
             var contLayerStyleFunction = function(feature)
@@ -852,7 +891,8 @@
                     source: prContDataSource,
                     style: contLayerStyleFunction, 
                     layerid: 'prmslCont',
-                    opacity: 1
+                    opacity: 1,
+                    visible: false
                     });
 
             function getColorCodeForTCDC(tcdcVal)
@@ -885,6 +925,35 @@
                 return [strokeColor,twidth];    
                 };
 
+            function getColorCodeForPRES(presVal)
+                {
+                var strokeColor = [2, 196, 21, 0.5];
+                var twidth = 15;
+                
+                if(presVal == 999999)
+                    {
+                    presVal = "";
+                    strokeColor = [2, 2, 2,0];  //'#020815';
+                    twidth = 10;                    
+                    }
+                else if(presVal < 5000) 
+                    {
+                    strokeColor = [2, 128, 21, 0.5];    //'#020815';
+                    twidth = 15;
+                    }
+                else if(presVal>=5000 && presVal<10000) 
+                    {
+                    strokeColor = [25, 140, 255,0.5];   //'#198cff';
+                    twidth = 17;
+                    }
+                else if(presVal>=10000) 
+                    {
+                    strokeColor = [270, 70 ,90, 0.5];//'#f61212';
+                    twidth = 20;
+                    }
+                return [strokeColor,twidth];    
+                }
+
             var lclCloudDataSource = new ol.source.Vector({
                 format: layerDataGeoJSONFormat,
                 projection: 'EPSG:3857',
@@ -903,6 +972,26 @@
             var lclCloudClusterDataSource = new ol.source.Cluster({source : lclCloudDataSource});
             var mclCloudClusterDataSource = new ol.source.Cluster({source : mclCloudDataSource});
             var cclCloudClusterDataSource = new ol.source.Cluster({source : cclCloudDataSource});
+
+            var lcblCloudDataSource = new ol.source.Vector({
+                format: layerDataGeoJSONFormat,
+                projection: 'EPSG:3857',
+                });
+
+            var mcblCloudDataSource = new ol.source.Vector({
+                format: layerDataGeoJSONFormat,
+                projection: 'EPSG:3857',
+                });
+
+            var ccblCloudDataSource = new ol.source.Vector({
+                format: layerDataGeoJSONFormat,
+                projection: 'EPSG:3857',
+                });
+
+            var lcblCloudClusterDataSource = new ol.source.Cluster({source : lcblCloudDataSource});
+            var mcblCloudClusterDataSource = new ol.source.Cluster({source : mcblCloudDataSource});
+            var ccblCloudClusterDataSource = new ol.source.Cluster({source : ccblCloudDataSource});
+
 
             var tcdcLowStyleFunction = function(feature)
                 {
@@ -978,22 +1067,117 @@
 
                 };  
 
+            var presLowStyleFunction = function(feature)
+                {
+                var tval = parseInt(feature.getProperties().features[0].getProperties().lcbl);
+                var ccodes = getColorCodeForPRES(tval);
+                if(tval == 999999)
+                    tval = "";
+
+                var diamondShape = new ol.style.RegularShape({
+                        fill: new ol.style.Fill({color: ccodes[0]}),
+                        stroke: new ol.style.Stroke({color: ccodes[0] ,width: 1}),
+                        points: 6,
+                        radius: ccodes[1],
+                        angle: Math.PI / 6
+                        });
+
+                var cText = new ol.style.Text({
+                        text: tval.toString(),  // size.toString(),
+                        fill: new ol.style.Fill({color: '#fff'})
+                        });
+
+                return [new ol.style.Style({image: diamondShape, text : cText})];
+
+                };
+
+            var presMiddleStyleFunction = function(feature)
+                {
+                var tval = parseInt(feature.getProperties().features[0].getProperties().mcbl);
+                var ccodes = getColorCodeForPRES(tval);
+                if(tval == 999999)
+                    tval = "";
+
+                var diamondShape = new ol.style.RegularShape({
+                        fill: new ol.style.Fill({color: ccodes[0]}),
+                        stroke: new ol.style.Stroke({color: ccodes[0] ,width: 1}),
+                        points: 6,
+                        radius: ccodes[1],
+                        angle: Math.PI / 6
+                        });
+                var cText = new ol.style.Text({
+                        text: tval.toString(),  // size.toString(),
+                        fill: new ol.style.Fill({color: '#fff'})
+                        });
+
+                return [new ol.style.Style({image: diamondShape, text : cText})];
+
+                };
+
+            var presConvectiveStyleFunction = function(feature)
+                {
+                var tval = parseInt(feature.getProperties().features[0].getProperties().ccbl);
+                var ccodes = getColorCodeForPRES(tval);
+                if(tval == 999999)
+                    tval = "";
+
+                var diamondShape = new ol.style.RegularShape({
+                        fill: new ol.style.Fill({color: ccodes[0]}),
+                        stroke: new ol.style.Stroke({color: ccodes[0] ,width: 1}),
+                        points: 6,
+                        radius: ccodes[1],
+                        angle: Math.PI / 6
+                        });
+
+                var cText = new ol.style.Text({
+                        text: tval.toString(),  // size.toString(),
+                        fill: new ol.style.Fill({color: '#fff'})
+                        });
+
+                return [new ol.style.Style({image: diamondShape, text : cText})];
+
+                };  
+
             var tcdcLowLayer = new ol.layer.Vector({
                 source: lclCloudClusterDataSource,
                 style: tcdcLowStyleFunction,
-                layerid: 'tcdcLow'
+                layerid: 'tcdcLow',
+                visible: false
                 });
 
             var tcdcMiddleLayer = new ol.layer.Vector({
                 source: mclCloudClusterDataSource,
                 style: tcdcMiddleStyleFunction,
-                layerid: 'tcdcMiddle'
+                layerid: 'tcdcMiddle',
+                visible: false
                 });
 
             var tcdcConvectiveLayer = new ol.layer.Vector({
                 source: cclCloudClusterDataSource,
                 style: tcdcConvectiveStyleFunction,
-                layerid: 'tcdcConvective'
+                layerid: 'tcdcConvective',
+                visible: false
+                });
+
+            var presLowLayer = new ol.layer.Vector({
+                source: lcblCloudClusterDataSource,
+                style: presLowStyleFunction,
+                layerid: 'presLow',
+                visible: false
+                });
+
+            var presMiddleLayer = new ol.layer.Vector({
+                source: mcblCloudClusterDataSource,
+                style: presMiddleStyleFunction,
+                layerid: 'presMiddle',
+                visible: false
+                });
+
+            var presConvectiveLayer = new ol.layer.Vector({
+                source: ccblCloudClusterDataSource,
+                style: presConvectiveStyleFunction,
+                layerid: 'presConvective',
+                visible: false
                 });
 
             var tmp2mContDataSource = new ol.source.Vector({
@@ -1002,11 +1186,12 @@
                 });
 
             var tmp2mContLayer = new ol.layer.Vector({
-                    source: tmp2mContDataSource,
-                    style: contLayerStyleFunction,
-                    layerid: 'tmp2mCont',
-                    opacity: 0.5
-                    });
+                source: tmp2mContDataSource,
+                style: contLayerStyleFunction,
+                layerid: 'tmp2mCont',
+                opacity: 0.5,
+                visible: false
+                });
 
             var hmdt2mContDataSource = new ol.source.Vector({
                 format: layerDataGeoJSONFormat,
@@ -1017,7 +1202,8 @@
                     source: hmdt2mContDataSource,
                     style: contLayerStyleFunction, 
                     layerid: 'hmdt2mCont',
-                    opacity: 0.5
+                    opacity: 0.5,
+                    visible: false
                     });
 
             var apcpContDataSource = new ol.source.Vector({
@@ -1029,7 +1215,8 @@
                     source: apcpContDataSource,
                     style: contLayerStyleFunction, 
                     layerid: 'apcpCont',
-                    opacity: 0.5
+                    opacity: 0.5,
+                    visible: false
                     });
 
             var pointFeature = new ol.Feature(new ol.geom.Point([0, 0]));
@@ -1059,6 +1246,9 @@
                         tcdcLowLayer,
                         tcdcMiddleLayer,
                         tcdcConvectiveLayer,
+                        presLowLayer,
+                        presMiddleLayer,
+                        presConvectiveLayer,
                         apcpContLayer,
                         prContLayer,
                         siteSelectionVectorLayer
@@ -1168,7 +1358,6 @@
                 function(){
                     map.getLayer('prmslCont').setVisible($(this).prop("checked"));
                 });   
-
             
             $("#tcdcLowVisible").change(
                 function(){
@@ -1184,6 +1373,22 @@
                 function(){
                 map.getLayer('tcdcConvective').setVisible($(this).prop("checked"));
                 });
+
+            $("#presLowVisible").change(
+                function(){
+                map.getLayer('presLow').setVisible($(this).prop("checked"));
+                });
+
+            $("#presMiddleVisible").change(
+                function(){
+                map.getLayer('presMiddle').setVisible($(this).prop("checked"));
+                });
+
+            $("#presConvectiveVisible").change(
+                function(){
+                map.getLayer('presConvective').setVisible($(this).prop("checked"));
+                });
+
 
             var marker = function(obj)
                     {                    

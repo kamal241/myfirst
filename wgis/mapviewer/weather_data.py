@@ -18,7 +18,7 @@ def get_weather_data(lt1, lt2, ln1, ln2, dtm):
 	R2D = 57.2958
 
 #	lt1, lt2, ln1, ln2 = 20,25,335,340
-	grbfs =  ["gfs.t00z.pgrb2.0p25.f001","gfs.t00z.pgrb2.0p25.f007","gfs.t00z.pgrb2.0p25.f013","gfs.t00z.pgrb2.0p25.f019","gfs.t00z.pgrb2.0p25.f025"]
+	grbfs =  ["gfs.t00z.pgrb2.0p25.f001","gfs.t00z.pgrb2.0p25.f007","gfs.t00z.pgrb2.0p25.f013","gfs.t00z.pgrb2.0p25.f019"]
 #	grbfs =  ["gfs.t00z.pgrb2.0p25.f001","gfs.t00z.pgrb2.0p25.f002","gfs.t00z.pgrb2.0p25.f003","gfs.t00z.pgrb2.0p25.f004"]
 
 
@@ -172,12 +172,12 @@ def get_weather_data(lt1, lt2, ln1, ln2, dtm):
 	f_coll = {"type": "FeatureCollection", "features": features }
 
 	return json.dumps(f_coll)
-"""
+
 if __name__ == "__main__":
 	lt1, lt2, ln1, ln2 = 20,21,335,336
-	wjson_data = get_weather_data(lt1, lt2, ln1, ln2, "20170106")
+	wjson_data = get_weather_data(lt1, lt2, ln1, ln2, "20170114")
 	with open('wjson.geojson','w') as wf:
 		wf.write(wjson_data)
-"""		
+		
 
 
