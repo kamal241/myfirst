@@ -19,17 +19,19 @@
     <script  type="text/javascript">
         var wdata;
         var wind_data = {};
+        var sdata;
+        var swave_data = {};
         var responseWS10mContData, responsePRMSLContData, responseTMP2mContData, responseHMDT2mContData, responseAPCPContData;
+        var responseSwaveData;
+        var windArrows = ["{% static 'mapviewer/images/arrows/gm_arrow.png' %}",
+                    "{% static 'mapviewer/images/arrows/bm_arrow.png' %}",
+                    "{% static 'mapviewer/images/arrows/rm_arrow.png' %}",
+                    "{% static 'mapviewer/images/arrows/up-arrow.png' %}"];
 
-            var windArrows = ["{% static 'mapviewer/images/arrows/gm_arrow.png' %}",
-                        "{% static 'mapviewer/images/arrows/bm_arrow.png' %}",
-                        "{% static 'mapviewer/images/arrows/rm_arrow.png' %}",
-                        "{% static 'mapviewer/images/arrows/up-arrow.png' %}"];
-
-            var waveArrows = ["{% static 'mapviewer/images/arrows/no_dir2.png' %}",
-                        "{% static 'mapviewer/images/arrows/gm_arrow.png' %}",
-                        "{% static 'mapviewer/images/arrows/bm_arrow.png' %}",
-                        "{% static 'mapviewer/images/arrows/rm_arrow.png' %}"];
+        var waveArrows = ["{% static 'mapviewer/images/arrows/no_dir2.png' %}",
+                    "{% static 'mapviewer/images/arrows/gm_arrow.png' %}",
+                    "{% static 'mapviewer/images/arrows/bm_arrow.png' %}",
+                    "{% static 'mapviewer/images/arrows/rm_arrow.png' %}"];
 
         var url_marker = "{% static 'mapviewer/images/pin_drop.png' %}";
         var start_map_pin = "{% static 'mapviewer/images/map-marker/start_bb2.png' %}";
@@ -177,6 +179,40 @@
 
             var swave_success = function(data)
                     {
+                    responseSwaveData = data;
+                    sdata = data;
+                    swave_data[0] = {"dsw1":{"type": "FeatureCollection","features": []},"hsw1":{"type": "FeatureCollection","features": []},"tsw1":{"type": "FeatureCollection","features": []},"dsw2":{"type": "FeatureCollection","features": []},"hsw2":{"type": "FeatureCollection","features": []},"tsw2":{"type": "FeatureCollection","features": []},"perpws":{"features": []},"mpww":{"features": []},"swhs":{"features": []},"dirpws":{"features": []},"shwws":{"features": []}};
+                    swave_data[1] = {"dsw1":{"type": "FeatureCollection","features": []},"hsw1":{"type": "FeatureCollection","features": []},"tsw1":{"type": "FeatureCollection","features": []},"dsw2":{"type": "FeatureCollection","features": []},"hsw2":{"type": "FeatureCollection","features": []},"tsw2":{"type": "FeatureCollection","features": []},"perpws":{"features": []},"mpww":{"features": []},"swhs":{"features": []},"dirpws":{"features": []},"shwws":{"features": []}};
+                    swave_data[2] = {"dsw1":{"type": "FeatureCollection","features": []},"hsw1":{"type": "FeatureCollection","features": []},"tsw1":{"type": "FeatureCollection","features": []},"dsw2":{"type": "FeatureCollection","features": []},"hsw2":{"type": "FeatureCollection","features": []},"tsw2":{"type": "FeatureCollection","features": []},"perpws":{"features": []},"mpww":{"features": []},"swhs":{"features": []},"dirpws":{"features": []},"shwws":{"features": []}};
+                    swave_data[3] = {"dsw1":{"type": "FeatureCollection","features": []},"hsw1":{"type": "FeatureCollection","features": []},"tsw1":{"type": "FeatureCollection","features": []},"dsw2":{"type": "FeatureCollection","features": []},"hsw2":{"type": "FeatureCollection","features": []},"tsw2":{"type": "FeatureCollection","features": []},"perpws":{"features": []},"mpww":{"features": []},"swhs":{"features": []},"dirpws":{"features": []},"shwws":{"features": []}};
+                    swave_data[4] = {"dsw1":{"type": "FeatureCollection","features": []},"hsw1":{"type": "FeatureCollection","features": []},"tsw1":{"type": "FeatureCollection","features": []},"dsw2":{"type": "FeatureCollection","features": []},"hsw2":{"type": "FeatureCollection","features": []},"tsw2":{"type": "FeatureCollection","features": []},"perpws":{"features": []},"mpww":{"features": []},"swhs":{"features": []},"dirpws":{"features": []},"shwws":{"features": []}};
+                    swave_data[5] = {"dsw1":{"type": "FeatureCollection","features": []},"hsw1":{"type": "FeatureCollection","features": []},"tsw1":{"type": "FeatureCollection","features": []},"dsw2":{"type": "FeatureCollection","features": []},"hsw2":{"type": "FeatureCollection","features": []},"tsw2":{"type": "FeatureCollection","features": []},"perpws":{"features": []},"mpww":{"features": []},"swhs":{"features": []},"dirpws":{"features": []},"shwws":{"features": []}};
+
+                    $.each(sdata.features, 
+                        function (key, val)             // All locations
+                            {
+                            dlocation = val.geometry; 
+                            swdata = val.properties;
+                            $.each(swdata, 
+                                function (key2, val2)   // All levels
+                                    {
+                                    var tpata = {};
+                                    var tdata = val2;
+                                    $.each(tdata,function(dk,dv)
+                                        {
+                                        var feature = {};
+                                        feature["geometry"] = dlocation;
+                                        feature["properties"] = {};
+                                        feature["properties"][key2] = {};
+                                        feature["properties"][key2] = dv;
+                                        swave_data[dk][key2].features.push(feature);
+                                        }); 
+                                    });
+                            });
+
+                    dsw1DataSource.addFeatures(ayerDataGeoJSONFormat.readFeatures(swave_data[0].dsw1,{'featureProjection':'EPSG:3857'}));
+                    dsw2DataSource.addFeatures(ayerDataGeoJSONFormat.readFeatures(swave_data[0].dsw2,{'featureProjection':'EPSG:3857'}));
+
                     /*    
                     responseWS10mContData = getByName(data,'WS10m');
 
@@ -239,19 +275,16 @@
                     }
 
                 var lt1,lt2,ln1,ln2;   
-                lt1 = lt - 2.5;
-                lt2 = lt + 2.5;
-                ln1 = ln - 2.5;
-                ln2 = ln + 2.5;
+                lt1 = lt - 1;
+                lt2 = lt + 1;
+                ln1 = ln - 1;
+                ln2 = ln + 1;
 
-                vector_url = base_url + "weather?lt1=" + lt1 + "&lt2=" + lt2 + "&ln1=" + ln1 + "&ln2=" + ln2 + "&dtm=20170114";
+                vector_url = base_url + "weather?lt1=" + lt1 + "&lt2=" + lt2 + "&ln1=" + ln1 + "&ln2=" + ln2 + "&dtm=20170106";
                 
-                raster_url = base_url + "weather_raster?lt1=" + lt1 + "&lt2=" + lt2 + "&ln1=" + ln1 + "&ln2=" + ln2 + "&dtm=2017011400";
+                raster_url = base_url + "weather_raster?lt1=" + lt1 + "&lt2=" + lt2 + "&ln1=" + ln1 + "&ln2=" + ln2 + "&dtm=2017010600";
 
-                swave_url = base_url + "weather_swave?lt1=" + lt1 + "&lt2=" + lt2 + "&ln1=" + ln1 + "&ln2=" + ln2 + "&dtm=2016112200";
-
-
-
+                swave_url = base_url + "weather_swave?lt1=" + lt1 + "&lt2=" + lt2 + "&ln1=" + ln1 + "&ln2=" + ln2 + "&dtm=2017011200";
 
                 $.ajax({
                     dataType: 'json',
@@ -736,6 +769,8 @@
 
             var wind975ClusterDataSource = new ol.source.Cluster({source : wind975DataSource});
 
+
+
             function getColorCodeForTemprature(tmp)
                     {
                     var strokeColor = [2,8,21,0.5];
@@ -800,6 +835,36 @@
                 return [new ol.style.Style({image: arrowImage})];           
                 };
 
+            var wind925mLayerStyleFunction = function(feature)
+                {
+                
+                var twdr10m = Math.floor(parseFloat(feature.getProperties().features[0].getProperties().wd_925m));
+
+               
+                var arrowImage = new ol.style.Icon({
+                        src: windArrows[3],  //"{% static 'synergymapviewer/images/arrows/gt_ar_24.png' %}",
+                        rotateWithView: true,
+                        rotation: twdr10m * (Math.PI / 180)
+                        });
+
+                return [new ol.style.Style({image: arrowImage})];           
+                };
+
+            var wind975mLayerStyleFunction = function(feature)
+                {
+                
+                var twdr10m = Math.floor(parseFloat(feature.getProperties().features[0].getProperties().wd_975m));
+
+               
+                var arrowImage = new ol.style.Icon({
+                        src: windArrows[3],  //"{% static 'synergymapviewer/images/arrows/gt_ar_24.png' %}",
+                        rotateWithView: true,
+                        rotation: twdr10m * (Math.PI / 180)
+                        });
+
+                return [new ol.style.Style({image: arrowImage})];           
+                };                
+
             var wind10mLayer = new ol.layer.Vector({
                     source: windClusterDataSource,
                     style: wind10mLayerStyleFunction,
@@ -809,14 +874,14 @@
 
             var wind925mbLayer = new ol.layer.Vector({
                     source: wind925ClusterDataSource,
-                    style: wind10mLayerStyleFunction,
+                    style: wind925mLayerStyleFunction,
                     layerid: 'wind925mb',
                     visible: false             
                     });
 
             var wind975mbLayer = new ol.layer.Vector({
                     source: wind975ClusterDataSource,
-                    style: wind10mLayerStyleFunction,
+                    style: wind975mLayerStyleFunction,
                     layerid: 'wind975mb',
                     visible: false                    
                     });
@@ -1180,6 +1245,286 @@
                 visible: false
                 });
 
+
+            var dsw1LayerStyleFunction = function(feature)
+                {
+                var tdsw1 = Math.floor(parseFloat(feature.getProperties().features[0].getProperties().dsw1_surface));
+                var thsw1 = Math.floor(parseFloat(feature.getProperties().features[0].getProperties().hsw1_surface));
+
+                var twidth = 15;
+                
+                var ccodes;
+                var arrowImage;
+                ccodes = getColorCodeForWaveDir(thsw1);
+
+                if(tdsw1 == 999)
+                    {
+                        tdsw1 = "";
+                        arrowImage = new ol.style.Icon({
+                            src: waveArrows[0],
+                            rotation: 0
+                            });
+                    }
+                else
+                    {
+                    arrowImage = new ol.style.Icon({
+                            src: ccodes[2],
+                            rotation: tdsw1 * (Math.PI / 180)
+                            });         
+                    }
+                    /*
+                var diamondShape = new ol.style.RegularShape({
+                        fill: new ol.style.Fill({color: ccodes[0]}),
+                        stroke: new ol.style.Stroke({color: ccodes[0] ,width: 1}),
+                        points: 6,
+                        radius: ccodes[1],
+                        angle: Math.PI / 6
+                        });
+
+                var cText = new ol.style.Text({
+                        text: thsw1.toString(),
+                        fill: new ol.style.Fill({color: '#000'})
+                        });
+                        */
+                return [new ol.style.Style({image: arrowImage})];           
+                //return [new ol.style.Style({image: diamondShape, text : cText})];
+
+                };
+
+            var dsw2LayerStyleFunction = function(feature)
+                {
+                var tdsw2 = Math.floor(parseFloat(feature.getProperties().features[0].getProperties().dsw2_surface));
+                var thsw2 = Math.floor(parseFloat(feature.getProperties().features[0].getProperties().hsw2_surface));
+
+                var twidth = 15;
+
+                var ccodes;
+                var arrowImage;
+                ccodes = getColorCodeForWaveDir(thsw2);
+
+                if(tdsw2 == 999)
+                    {
+                        tdsw2 = "";
+                        arrowImage = new ol.style.Icon({
+                            src: waveArrows[0],
+                            rotation: 0
+                            });
+                    }
+                else
+                    {
+                    arrowImage = new ol.style.Icon({
+                            src: ccodes[2],
+                            rotation: tdsw2 * (Math.PI / 180)
+                            });         
+                    }
+                return [new ol.style.Style({image: arrowImage})];           
+                };  
+
+            var hsw1LayerStyleFunction = function(feature)
+                {   
+                var thsw1 = Math.floor(parseFloat(feature.getProperties().features[0].getProperties().hsw1_surface));
+
+                var twidth = 15;    
+                var ccodes; 
+                ccodes = getColorCodeForWW3(thsw1);
+
+                if(thsw1 == 999)
+                    {
+                        thsw1 = "";
+                    }
+
+                var diamondShape = new ol.style.RegularShape({
+                        fill: new ol.style.Fill({color: ccodes[0]}),
+                        stroke: new ol.style.Stroke({color: ccodes[0] ,width: 1}),
+                        points: 6,
+                        radius: ccodes[1],
+                        angle: Math.PI / 6
+                        });
+
+                var cText = new ol.style.Text({
+                        text: thsw1.toString(),
+                        fill: new ol.style.Fill({color: '#000'})
+                        });
+                
+                return [new ol.style.Style({image: diamondShape, text : cText})];
+
+                };
+
+            var hsw2LayerStyleFunction = function(feature)
+                {   
+                var thsw2 = Math.floor(parseFloat(feature.getProperties().features[0].getProperties().hsw2_surface));
+
+                var twidth = 15;    
+                var ccodes; 
+                ccodes = getColorCodeForWW3(thsw2);
+
+                if(thsw2 == 999)
+                    {
+                        thsw2 = "";
+                    }
+
+                var diamondShape = new ol.style.RegularShape({
+                        fill: new ol.style.Fill({color: ccodes[0]}),
+                        stroke: new ol.style.Stroke({color: ccodes[0] ,width: 1}),
+                        points: 6,
+                        radius: ccodes[1],
+                        angle: Math.PI / 6
+                        });
+
+                var cText = new ol.style.Text({
+                        text: thsw2.toString(),
+                        fill: new ol.style.Fill({color: '#000'})
+                        });
+                
+                return [new ol.style.Style({image: diamondShape, text : cText})];
+
+                };
+
+            var tsw1LayerStyleFunction = function(feature)
+                {   
+                var ttsw1 = Math.floor(parseFloat(feature.getProperties().features[0].getProperties().tsw1_surface));
+
+                var twidth = 15;    
+                var ccodes; 
+                ccodes = getColorCodeForWW3(ttsw1);
+
+                if(ttsw1 == 999)
+                    {
+                        ttsw1 = "";
+                    }
+
+                var cStyle = new ol.style.Circle({
+                            fill: new ol.style.Fill({
+                            color: ccodes[0] //'#1b465a',
+                            }),
+                        stroke: new ol.style.Stroke({
+                            color: ccodes[0],
+                            width: 3
+                            }),
+                        radius: ccodes[1]
+                        });
+
+                var cText = new ol.style.Text({
+                        text: ttsw1.toString(),
+                        fill: new ol.style.Fill({color: '#000'})
+                        });
+                
+                return [new ol.style.Style({image: cStyle, text : cText})];
+
+                };
+
+            var tsw2LayerStyleFunction = function(feature)
+                {   
+                var ttsw2 = Math.floor(parseFloat(feature.getProperties().features[0].getProperties().tsw2_surface));
+
+                var twidth = 15;    
+                var ccodes; 
+                ccodes = getColorCodeForWW3(ttsw2);
+
+                if(ttsw2 == 999)
+                    {
+                        ttsw2 = "";
+                    }
+
+                var cStyle = new ol.style.Circle({
+                            fill: new ol.style.Fill({
+                            color: ccodes[0] //'#1b465a',
+                            }),
+                        stroke: new ol.style.Stroke({
+                            color: ccodes[0],
+                            width: 3
+                            }),
+                        radius: ccodes[1]
+                        });
+
+                var cText = new ol.style.Text({
+                        text: ttsw2.toString(),
+                        fill: new ol.style.Fill({color: '#000'})
+                        });
+                
+                return [new ol.style.Style({image: cStyle, text : cText})];
+
+                };
+
+            var dsw1DataSource = new ol.source.Vector({
+                format: layerDataGeoJSONFormat,
+                projection: 'EPSG:3857',
+                });
+
+
+            var dsw1ClusterDataSource = new ol.source.Cluster({source : dsw1DataSource});
+
+            var dsw1Layer = new ol.layer.Vector({
+                source: dsw1ClusterDataSource,
+                style: dsw1LayerStyleFunction,
+                layerid: 'dsw1'
+                });
+
+            var hsw1DataSource = new ol.source.Vector({
+                format: layerDataGeoJSONFormat,
+                projection: 'EPSG:3857',
+                });
+
+            var hsw1ClusterDataSource = new ol.source.Cluster({source : hsw1DataSource});
+
+            var hsw1Layer = new ol.layer.Vector({
+                source: hsw1ClusterDataSource,
+                style: hsw1LayerStyleFunction,
+                layerid: 'hsw1'
+                });
+
+            var tsw1DataSource = new ol.source.Vector({
+                format: layerDataGeoJSONFormat,
+                projection: 'EPSG:3857',
+                });
+
+            var tsw1ClusterDataSource = new ol.source.Cluster({source : tsw1DataSource});
+
+            var tsw1Layer = new ol.layer.Vector({
+                source: tsw1ClusterDataSource,
+                style: tsw1LayerStyleFunction,
+                layerid: 'tsw1'
+                });
+
+            var dsw2DataSource = new ol.source.Vector({
+                format: layerDataGeoJSONFormat,
+                projection: 'EPSG:3857',
+                });
+
+            var dsw2ClusterDataSource = new ol.source.Cluster({source : dsw2DataSource});
+
+            var dsw2Layer = new ol.layer.Vector({
+                source: dsw2ClusterDataSource,
+                style: dsw2LayerStyleFunction,
+                layerid: 'dsw2'
+                });
+
+            var hsw2DataSource = new ol.source.Vector({
+                format: layerDataGeoJSONFormat,
+                projection: 'EPSG:3857',
+                });
+
+            var hsw2ClusterDataSource = new ol.source.Cluster({source : hsw2DataSource});
+
+            var hsw2Layer = new ol.layer.Vector({
+                source: hsw2ClusterDataSource,
+                style: hsw2LayerStyleFunction,
+                layerid: 'hsw2'
+                });
+
+            var tsw2DataSource = new ol.source.Vector({
+                format: layerDataGeoJSONFormat,
+                projection: 'EPSG:3857',
+                });
+            
+            var tsw2ClusterDataSource = new ol.source.Cluster({source : tsw2DataSource});
+
+            var tsw2Layer = new ol.layer.Vector({
+                source: tsw2ClusterDataSource,
+                style: tsw2LayerStyleFunction,
+                layerid: 'tsw2'
+                });
+
             var tmp2mContDataSource = new ol.source.Vector({
                 format: layerDataGeoJSONFormat,
                 projection: 'EPSG:3857',
@@ -1250,6 +1595,12 @@
                         presMiddleLayer,
                         presConvectiveLayer,
                         apcpContLayer,
+                        dsw1Layer,
+                        dsw2Layer,              
+                        hsw1Layer,
+                        hsw2Layer,
+                        tsw1Layer,
+                        tsw2Layer,
                         prContLayer,
                         siteSelectionVectorLayer
                     ],
