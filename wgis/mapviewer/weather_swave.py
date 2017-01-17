@@ -50,19 +50,19 @@ def get_swave_data(lt1, lt2, ln1, ln2, t):
 		tsw1_all.append(tsw1_data)
 	tsw1d = np.dstack((tsw1_all))
 
-	dsw2s = grbs.select(shortName="swdir",nameOfFirstFixedSurface="241",level=1)
+	dsw2s = grbs.select(shortName="swdir",nameOfFirstFixedSurface="241",level=2)
 	for dsw in dsw2s[:4]:
 		dsw2_data, lats, lons = dsw.data(lat1=lt1,lat2=lt2,lon1=ln1,lon2=ln2)
 		dsw2_all.append(dsw2_data)
 	dsw2d = np.dstack((dsw2_all))
 	
-	hsw2s = grbs.select(shortName="swell",nameOfFirstFixedSurface="241",level=1)
+	hsw2s = grbs.select(shortName="swell",nameOfFirstFixedSurface="241",level=2)
 	for hsw in hsw2s[:4]:
 		hsw2_data, lats, lons = hsw.data(lat1=lt1,lat2=lt2,lon1=ln1,lon2=ln2)
 		hsw2_all.append(hsw2_data)
 	hsw2d = np.dstack((hsw2_all))
 
-	tsw2s = grbs.select(shortName="swper",nameOfFirstFixedSurface="241",level=1)
+	tsw2s = grbs.select(shortName="swper",nameOfFirstFixedSurface="241",level=2)
 	for tsw in tsw2s[:4]:
 		tsw2_data, lats, lons = tsw.data(lat1=lt1,lat2=lt2,lon1=ln1,lon2=ln2)
 		tsw2_all.append(tsw2_data)
@@ -78,7 +78,7 @@ def get_swave_data(lt1, lt2, ln1, ln2, t):
 	for perpw in perpws[:4]:	
 		perpws_data, lats, lons = perpw.data(lat1=lt1,lat2=lt2,lon1=ln1,lon2=ln2)
 		perpws_all.append(perpws_data)
-	perpwsd = np.dstack((dirpws_all))
+	perpwsd = np.dstack((perpws_all))
 
 	swhs = grbs.select(shortName="swh")
 	for shw in swhs[:4]:	
