@@ -143,6 +143,7 @@
 
                             });
 
+                    gustDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(wind_data[0].gust,{'featureProjection':'EPSG:3857'}));
                     windDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(wind_data[0].wd_10m,{'featureProjection':'EPSG:3857'}));
                     wind925DataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(wind_data[0].wd_925m,{'featureProjection':'EPSG:3857'}));
                     wind975DataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(wind_data[0].wd_975m,{'featureProjection':'EPSG:3857'}));
@@ -221,6 +222,7 @@
                     mpwwDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(swave_data[0].mpww,{'featureProjection':'EPSG:3857'}));
                     dirpwsDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(swave_data[0].dirpws,{'featureProjection':'EPSG:3857'}));
                     swhsDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(swave_data[0].swhs,{'featureProjection':'EPSG:3857'}));
+                    maxswhsDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(swave_data[0].swhs,{'featureProjection':'EPSG:3857'}));
                     /*    
                     responseWS10mContData = getByName(data,'WS10m');
 
@@ -283,10 +285,10 @@
                     }
 
                 var lt1,lt2,ln1,ln2;   
-                lt1 = lt - 1;
-                lt2 = lt + 1;
-                ln1 = ln - 1;
-                ln2 = ln + 1;
+                lt1 = lt - 2.5;
+                lt2 = lt + 2.5;
+                ln1 = ln - 2.5;
+                ln2 = ln + 2.5;
 
                 vector_url = base_url + "weather?lt1=" + lt1 + "&lt2=" + lt2 + "&ln1=" + ln1 + "&ln2=" + ln2 + "&dtm=20170106";
                 
@@ -761,11 +763,41 @@
                     projection: 'EPSG:3857',
                     });
 
-            var wind925ClusterDataSource = new ol.source.Cluster({source : wind925DataSource});
+            var gustDataSource = new ol.source.Vector({
+                    format: layerDataGeoJSONFormat,
+                    projection: 'EPSG:3857',
+                    });
 
+            var wind925ClusterDataSource = new ol.source.Cluster({source : wind925DataSource});
             var wind975ClusterDataSource = new ol.source.Cluster({source : wind975DataSource});
 
+            var gustClusterDataSource = new ol.source.Cluster({source : gustDataSource});
 
+            function getColorCodeForWindSpeed(tws)
+                {
+                var strokeColor = [2,8,21,0.5];
+                var arrowImageURL = windArrows[3];
+                var twidth = 15;
+                if(tws <= 5) 
+                    {
+                    strokeColor = [2, 8, 21, 0.5];  //'#020815';
+                    twidth = 15;
+            //      arrowImageURL = windArrows[0];  //"{% static 'synergymapviewer/images/arrows/gm_arrow.png' %}";
+                    }
+                else if(tws>5 && tws<10) 
+                    {
+                    strokeColor = [25, 140, 255,0.5];   //'#198cff';
+                    twidth = 17;
+            //      arrowImageURL = windArrows[1];  //"{% static 'synergymapviewer/images/arrows/bm_arrow.png' %}";
+                    }
+                else if(tws>=10) 
+                    {
+                    strokeColor = [270, 70 ,90, 0.5];//'#f61212';
+                    twidth = 20;
+            //      arrowImageURL = windArrows[2];  //"{% static 'synergymapviewer/images/arrows/rm_arrow.png' %}";
+                    }
+                return [strokeColor,twidth,arrowImageURL];                      
+                }
 
             function getColorCodeForTemprature(tmp)
                     {
@@ -860,6 +892,37 @@
 
                 return [new ol.style.Style({image: arrowImage})];           
                 };                
+
+            var windGustLayerStyleFunction = function(feature)
+                {
+                var twsGust = Math.floor(parseFloat(feature.getProperties().features[0].getProperties().gust));
+                
+                var ccodes = getColorCodeForWindSpeed(twsGust);
+
+                var triangleShape = new ol.style.RegularShape({
+                      fill: new ol.style.Fill({color: ccodes[0]}),
+                      stroke: new ol.style.Stroke({color: ccodes[0],width: 1}),
+                      points: 3,
+                      radius: ccodes[1],
+                      rotation: Math.PI / 4,
+                      angle: 0
+                    });
+
+                var cText = new ol.style.Text({
+                        text: twsGust.toString(),   // size.toString(),
+                        fill: new ol.style.Fill({color: '#000'})
+                        });
+
+                return [new ol.style.Style({image: triangleShape, text : cText})];
+
+                };         
+
+            var windGustLayer = new ol.layer.Vector({
+                    source: gustClusterDataSource,
+                    style: windGustLayerStyleFunction,
+                    layerid: 'windGust',
+                    visible: false
+                    });
 
             var wind10mLayer = new ol.layer.Vector({
                     source: windClusterDataSource,
@@ -1639,6 +1702,35 @@
 
                 };
 
+            var maxswhsLayerStyleFunction = function(feature)
+                {   
+                var thsw2 = Math.ceil(parseFloat(feature.getProperties().features[0].getProperties().swhs)*1.5);
+
+                var twidth = 15;    
+                var ccodes; 
+                ccodes = getColorCodeForWW3(thsw2);
+
+                if(thsw2 = 9999 || thsw2 == 0)
+                    {
+                        thsw2 = "";
+                    }
+
+                var diamondShape = new ol.style.RegularShape({
+                        fill: new ol.style.Fill({color: ccodes[0]}),
+                        stroke: new ol.style.Stroke({color: ccodes[0] ,width: 1}),
+                        points: 6,
+                        radius: ccodes[1],
+                        angle: Math.PI / 6
+                        });
+
+                var cText = new ol.style.Text({
+                        text: thsw2.toString(),
+                        fill: new ol.style.Fill({color: '#000'})
+                        });
+                
+                return [new ol.style.Style({image: diamondShape, text : cText})];
+
+                };
 
             var dsw1DataSource = new ol.source.Vector({
                 format: layerDataGeoJSONFormat,
@@ -1650,7 +1742,8 @@
             var dsw1Layer = new ol.layer.Vector({
                 source: dsw1ClusterDataSource,
                 style: dsw1LayerStyleFunction,
-                layerid: 'dsw1'
+                layerid: 'dsw1',
+                visible: false
                 });
 
             var hsw1DataSource = new ol.source.Vector({
@@ -1663,7 +1756,8 @@
             var hsw1Layer = new ol.layer.Vector({
                 source: hsw1ClusterDataSource,
                 style: hsw1LayerStyleFunction,
-                layerid: 'hsw1'
+                layerid: 'hsw1',
+                visible: false
                 });
 
             var tsw1DataSource = new ol.source.Vector({
@@ -1676,7 +1770,8 @@
             var tsw1Layer = new ol.layer.Vector({
                 source: tsw1ClusterDataSource,
                 style: tsw1LayerStyleFunction,
-                layerid: 'tsw1'
+                layerid: 'tsw1',
+                visible: false
                 });
 
             var dsw2DataSource = new ol.source.Vector({
@@ -1689,7 +1784,8 @@
             var dsw2Layer = new ol.layer.Vector({
                 source: dsw2ClusterDataSource,
                 style: dsw2LayerStyleFunction,
-                layerid: 'dsw2'
+                layerid: 'dsw2',
+                visible: false
                 });
 
             var hsw2DataSource = new ol.source.Vector({
@@ -1702,7 +1798,8 @@
             var hsw2Layer = new ol.layer.Vector({
                 source: hsw2ClusterDataSource,
                 style: hsw2LayerStyleFunction,
-                layerid: 'hsw2'
+                layerid: 'hsw2',
+                visible: false
                 });
 
             var tsw2DataSource = new ol.source.Vector({
@@ -1715,7 +1812,8 @@
             var tsw2Layer = new ol.layer.Vector({
                 source: tsw2ClusterDataSource,
                 style: tsw2LayerStyleFunction,
-                layerid: 'tsw2'
+                layerid: 'tsw2',
+                visible: false
                 });
 
             var whgtDataSource = new ol.source.Vector({
@@ -1728,7 +1826,8 @@
             var whgtLayer = new ol.layer.Vector({
                 source: whgtClusterDataSource,
                 style: whgtLayerStyleFunction,
-                layerid: 'whgt'
+                layerid: 'whgt',
+                visible: false
                 });
 
             var swperDataSource = new ol.source.Vector({
@@ -1741,7 +1840,8 @@
             var swperLayer = new ol.layer.Vector({
                 source: swperClusterDataSource,
                 style: swperLayerStyleFunction,
-                layerid: 'swper'
+                layerid: 'perpws',
+                visible: false
                 });
 
             var mpwwDataSource = new ol.source.Vector({
@@ -1754,7 +1854,8 @@
             var mpwwLayer = new ol.layer.Vector({
                 source: mpwwClusterDataSource,
                 style: mpwwLayerStyleFunction,
-                layerid: 'mpww'
+                layerid: 'mpww',
+                visible: false
                 });
 
             var dirpwsDataSource = new ol.source.Vector({
@@ -1767,7 +1868,8 @@
             var dirpwsLayer = new ol.layer.Vector({
                 source: dirpwsClusterDataSource,
                 style: dirpwsLayerStyleFunction,
-                layerid: 'dirpws'
+                layerid: 'dirpws',                
+                visible: false
                 });
 
             var swhsDataSource = new ol.source.Vector({
@@ -1778,9 +1880,25 @@
             var swhsClusterDataSource = new ol.source.Cluster({source : swhsDataSource});
 
             var swhsLayer = new ol.layer.Vector({
-                source: whgtClusterDataSource,
-                style: whgtLayerStyleFunction,
-                layerid: 'swhs'
+                source: swhsClusterDataSource,
+                style: swhsLayerStyleFunction,
+                layerid: 'swhs',
+                visible: false
+                });
+
+
+            var maxswhsDataSource = new ol.source.Vector({
+                format: layerDataGeoJSONFormat,
+                projection: 'EPSG:3857',
+                });
+
+            var maxswhsClusterDataSource = new ol.source.Cluster({source : maxswhsDataSource});
+
+            var maxswhsLayer = new ol.layer.Vector({
+                source: maxswhsClusterDataSource,
+                style: maxswhsLayerStyleFunction,
+                layerid: 'maxswhs',
+                visible: false
                 });
 
             var tmp2mContDataSource = new ol.source.Vector({
@@ -1840,6 +1958,7 @@
                 layers: [
                         new ol.layer.Tile({
                         source: new ol.source.OSM()}),
+                        windGustLayer,
                         wind10mLayer,
                         wind925mbLayer,
                         wind975mbLayer,
@@ -1864,6 +1983,7 @@
                         mpwwLayer,
                         dirpwsLayer,
                         swhsLayer,
+                        maxswhsLayer,
                         prContLayer,
                         siteSelectionVectorLayer
                     ],
@@ -1931,6 +2051,11 @@
                     {
                     $('#legendsmenu').html("&#x2715"); 
                     }
+                });
+
+            $("#windGustVisible").change(
+                function(){
+                map.getLayer('windGust').setVisible($(this).prop("checked"));
                 });
 
             $("#wind10mVisible").change(
@@ -2057,7 +2182,10 @@
                 function(){
                     map.getLayer('swhs').setVisible($(this).prop("checked"));
                     });
-
+            $("#maxshwsVisible").change(
+                function(){
+                    map.getLayer('maxswhs').setVisible($(this).prop("checked"));
+                    });
             var marker = function(obj)
                     {                    
                     siteSelectionVectorLayer.getSource().clear();

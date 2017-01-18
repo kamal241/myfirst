@@ -443,7 +443,7 @@ def get_contours(bottom,top,left,right,t,fv):
 	apcp_diff = int(math.ceil((apcp_max - apcp_min) / 5.0))
 
 #	apcp_levs = range(apcp_min,apcp_max+apcp_diff,apcp_diff)
-	apcp_levs = range(1,81,2)
+	apcp_levs = range(0,81,2)
 	apcp_contour = contmap.contourf(x,y,apcp_data,apcp_levs,cmap=plt.cm.jet, alpha=.5)
 #	cswf = map.contourf(x[points],y[points],wspeed[points],cmap=plt.cm.jet, alpha=.5)
 	cb = contmap.colorbar(location='right', pad="12%")
