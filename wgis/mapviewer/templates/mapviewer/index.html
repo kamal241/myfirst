@@ -21,6 +21,7 @@
         var wind_data = {};
         var sdata;
         var swave_data = {};
+        var cindex=0;
         var responseWS10mContData, responsePRMSLContData, responseTMP2mContData, responseHMDT2mContData, responseAPCPContData;
         var responseSwaveData;
         var windArrows = ["{% static 'mapviewer/images/arrows/gm_arrow.png' %}",
@@ -318,10 +319,40 @@
 
             $('#nextData').click(function (e) 
                 {
+                
+                
 
-                wind10mLayer.getSource().clear();
-                windDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(wind_data[(++cindex)%4].wd_10m,{'featureProjection':'EPSG:3857'}));
-                console.log("Loading data for " + (cindex%4));
+                try 
+                    {
+                    wind10mLayer.getSource().clear();
+                    windGustLayer.getSource().clear();
+                    wind925mbLayer.getSource().clear();
+                    wind975mbLayer.getSource().clear();
+                    windDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(wind_data[cindex%4].wd_10m,{'featureProjection':'EPSG:3857'}));
+                    gustDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(wind_data[cindex%4].gust,{'featureProjection':'EPSG:3857'}));           
+                    wind925DataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(wind_data[cindex%4].wd_925m,{'featureProjection':'EPSG:3857'}));
+                    wind975DataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(wind_data[cindex%4].wd_975m,{'featureProjection':'EPSG:3857'}));
+
+                    tcdcLowLayer.getSource().clear();
+                    tcdcMiddleLayer.getSource().clear();
+                    tcdcConvectiveLayer.getSource().clear();
+                    lclCloudDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(cloud_data[cindex%4].lcl,{'featureProjection':'EPSG:3857'}));
+                    mclCloudDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(cloud_data[cindex%4].mcl,{'featureProjection':'EPSG:3857'}));
+                    cclCloudDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(cloud_data[cindex%4].ccl,{'featureProjection':'EPSG:3857'}));
+                    presLowLayer.getSource().clear();
+                    presMiddleLayer.getSource().clear();
+                    presConvectiveLayer.getSource().clear();
+                    lcblCloudDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(cloud_data[cindex%4].lcbl,{'featureProjection':'EPSG:3857'}));
+                    mcblCloudDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(cloud_data[cindex%4].mcbl,{'featureProjection':'EPSG:3857'}));
+                    ccblCloudDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(cloud_data[cindex%4].ccbl,{'featureProjection':'EPSG:3857'}));
+                    cindex=cindex+1;
+                    console.log(cindex%4);
+                    }
+                catch(err)
+                    {
+                    console.log(err.message);
+                    cindex=cindex+1;
+                    }
                 });
 
 
