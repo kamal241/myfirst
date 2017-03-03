@@ -3,7 +3,7 @@ from django.http import HttpResponse
 from django.template import loader
 from weather_data import *
 from weather_swave import *
-from raster_data import get_pres_msl_contour, get_contours
+from raster_data import get_pres_msl_contour, get_contours, get_multi_contours
 # Create your views here.
 
 def index(request):
@@ -20,7 +20,10 @@ def weather(request):
 	ln1 = float(request.GET.get('ln1'))
 	ln2 = float(request.GET.get('ln2'))
 	print dtm
-	wjson_data = get_weather_data(lt1, lt2, ln1, ln2, dtm)
+	dt = dtm[:8]
+	tm = dtm[8:]
+	print dt, tm
+	wjson_data = get_weather_data(lt1, lt2, ln1, ln2, dt, tm)
 	return HttpResponse(wjson_data,content_type='application/json')
 
 def weather_raster(request):
@@ -30,7 +33,8 @@ def weather_raster(request):
 	lt2 = float(request.GET.get('lt2'))
 	ln1 = float(request.GET.get('ln1'))
 	ln2 = float(request.GET.get('ln2'))
-	wjson_data = get_contours(lt1, lt2, ln1, ln2, dtm,4)
+#	wjson_data = get_contours(lt1, lt2, ln1, ln2, dtm,4)
+	wjson_data = get_multi_contours(lt1, lt2, ln1, ln2, dtm,4)
 	return HttpResponse(wjson_data,content_type='application/json')	
 
 def weather_swave(request):

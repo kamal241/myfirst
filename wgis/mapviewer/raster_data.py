@@ -471,23 +471,37 @@ def get_contours(bottom,top,left,right,t,fv):
 	apcp_cont_features_properties = {"name":"APCP", "level":0, "unit": "m", "levelName":"surface"}
 	apcp_cont_feature_collection = FeatureCollection(apcp_features,properties=apcp_cont_features_properties)
 
-	prmsl_ws10m_temp2m_feature_collection = FeatureCollection([wspeed_feature_collection,prmsl_feature_collection,temp2m_cont_features_collection,hmdt2m_cont_features_collection,apcp_cont_feature_collection])
+	other_properties = {"timestamp" : t, "hour": fv}
+	prmsl_ws10m_temp2m_feature_collection = FeatureCollection([wspeed_feature_collection,prmsl_feature_collection,temp2m_cont_features_collection,hmdt2m_cont_features_collection,apcp_cont_feature_collection], properties=other_properties)
 	prmsl_ws10m_temp2m_geojson_dump = geojson.dumps(prmsl_ws10m_temp2m_feature_collection, sort_keys=True)
 
+	return prmsl_ws10m_temp2m_feature_collection
+#	return prmsl_ws10m_temp2m_geojson_dump
 
-	return prmsl_ws10m_temp2m_geojson_dump
+def get_multi_contours(bottom,top,left,right,dtm,fv):
+	tms = [1,4,7,10]
+	features = []
+	for idx,t in enumerate(tms):
+		feature = get_contours(bottom,top,left,right,dtm,t)
+		features.append(feature)
+   	raster_datas = FeatureCollection(features)
+   	return geojson.dumps(raster_datas)
 
 
-"""
 if __name__ ==  "__main__":
 #	b=19.926877111209265&t=21.652322721683646&l=70.91198729351163&r=73.21911619976163
 #	get_pres_msl_contour(left,bottom,top,right,t,fv)
 
 #	geojson_data = get_pres_msl_contour(69.111198729351163, 18.926877111209265, 22.22322721683646, 72.81911619976163,"2016101006",6)	
 #	geojson_data = get_pres_msl_contour(70.80078106373549,13.089288487776358,19.289542354858398,77.12890606373547,"2016111906",6)	
-	geojson_data = get_contours(13.089288487776358,19.289542354858398,70.80078106373549,77.12890606373547,"2017010600",4)
-   
-	with open('contours.geojson', 'w') as fileout:
-	    fileout.write(geojson_data)    
+	dtm = "2017022806"
+	tms = [1,4,7,10,13,16,19,22]
+	features = []
+	for idx,t in enumerate(tms):
+		feature = get_contours(13.089288487776358,19.289542354858398,70.80078106373549,77.12890606373547,dtm,t)
+		features.append(feature)
+   	raster_datas = FeatureCollection(features)
+	with open('contours_%s.geojson' % dtm, 'w') as fileout:
+		fileout.write(geojson.dumps(raster_datas))
+#	    fileout.write(raster_datas)    
 
-"""

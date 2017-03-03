@@ -17,12 +17,26 @@
     <script href="{% static 'mapviewer/js/mapviewer.js' %}" type="text/javascript"> </script> 
     <script src="{% static 'mapviewer/js/ol3-contextmenu.js' %}" type="text/javascript"></script>
     <script  type="text/javascript">
+        function SiteLocation(type,lat,lon)
+            {
+                this.type = type;
+                this.lat = lat;
+                if (lon<0)
+                    {
+                        lon = 360 + (lon % 360);
+                    }
+                this.lon = lon;
+            }
+
+        var sls = [new SiteLocation("DD",-9.642500,9.67083333), 
+                    new  SiteLocation("DD",10.5116667,100.286667),
+                    new  SiteLocation("DD",4.1023333,103.506500)];
         var wdata;
         var wind_data = {};
         var sdata;
         var swave_data = {};
         var cindex=0;
-        var responseWS10mContData, responsePRMSLContData, responseTMP2mContData, responseHMDT2mContData, responseAPCPContData;
+        var responseRasterData, responseWS10mContData, responsePRMSLContData, responseTMP2mContData, responseHMDT2mContData, responseAPCPContData;
         var responseSwaveData;
         var windArrows = ["{% static 'mapviewer/images/arrows/gm_arrow.png' %}",
                     "{% static 'mapviewer/images/arrows/bm_arrow.png' %}",
@@ -157,8 +171,10 @@
 
                     };
 
-            var raster_success = function(data)
+            var raster_success = function(datas)
                     {
+                    responseRasterData = datas;
+                    data = datas.features[0];
                     responseWS10mContData = getByName(data,'WS10m');
 
                     ws10mContDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(responseWS10mContData,{'featureProjection':'EPSG:3857'}));
@@ -247,12 +263,13 @@
 
             function getTimeStampForData() 
                 {
-                var cdate = new Date();
+                var now = new Date();
+                var cdate = new Date(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(),  now.getUTCHours(), now.getUTCMinutes(), now.getUTCSeconds());
                 var tzoffzet = cdate.getTimezoneOffset();
                 var fcids = ['00','06','12','18'];
-                var hrs = cdate.getHours();
+                var hrs = cdate.getUTCHours();
 
-                var dohrs = hrs - 5;
+                var dohrs = hrs; // - 5;
                 var cday = cdate.getDay();
                 if (dohrs<0)
                     {
@@ -264,6 +281,7 @@
                     cdate.setHours(dohrs);
                     }
                 var didx = fcids[parseInt(dohrs/6)];
+                var didx = fcids[1];
 
 
                 var mnth = cdate.getMonth()+1;
@@ -272,11 +290,66 @@
                 return dtm;
                 }
 
+            function addLocation(obj)
+                {
+                //console.log(obj);
+                var template = '[ {x} | {y} ]';
+                var iconStyle = new ol.style.Style({
+                    image: new ol.style.Icon({
+                    scale: .6,
+                    src: url_marker
+                    }),
+                    text: new ol.style.Text({
+                    offsetY: 25,
+                //    text: ol.coordinate.format(obj, template, 2),
+                    font: '15px Open Sans,sans-serif',
+                    fill: new ol.style.Fill({ color: '#111' }),
+                    stroke: new ol.style.Stroke({
+                      color: '#eee', width: 2
+                    })
+                    })
+                    });
+                var feature = new ol.Feature({
+                      type: 'removable',
+                      geometry: new ol.geom.Point(obj)
+                    });
+                      
+                feature.setStyle(iconStyle);
+                siteSelectionVectorLayer.getSource().clear();
+                siteSelectionVectorLayer.getSource().addFeature(feature);
+                map.getView().setCenter(obj);
+
+                }
+
+            $('#location1').click(function (e) 
+                {
+                    //alert(sls[0].lat + "" + sls[0].lon);
+                    var coord4326 = ol.proj.transform([sls[0].lon, sls[0].lat], 'EPSG:4326', 'EPSG:3857');
+                    targetSiteLocation = [sls[0].lon, sls[0].lat];
+                    addLocation(coord4326);
+                });
+
+            $('#location2').click(function (e) 
+                {
+                    //alert(sls[1].lat + "" + sls[1].lon);
+                    var coord4326 = ol.proj.transform([sls[1].lon, sls[1].lat], 'EPSG:4326', 'EPSG:3857');
+                    targetSiteLocation = [sls[1].lon, sls[1].lat];
+                    addLocation(coord4326);
+                });
+
+            $('#location3').click(function (e) 
+                {
+                    //alert(sls[2].lat + "" + sls[2].lon);
+                    var coord4326 = ol.proj.transform([sls[2].lon, sls[2].lat], 'EPSG:4326', 'EPSG:3857');
+                    targetSiteLocation = [sls[2].lon, sls[2].lat];
+                    addLocation(coord4326);
+                });            
+
             $('#loadData').click(function (e) 
                 {
-
-                console.log("TimeStamp is "+getTimeStampForData());
-
+                var dtm = getTimeStampForData();
+                console.log("TimeStamp is "+dtm);
+                dtm = "2017022806";
                 var lt = targetSiteLocation[1];
                 var ln = targetSiteLocation[0];
 
@@ -291,11 +364,13 @@
                 ln1 = ln - 2.5;
                 ln2 = ln + 2.5;
 
-                vector_url = base_url + "weather?lt1=" + lt1 + "&lt2=" + lt2 + "&ln1=" + ln1 + "&ln2=" + ln2 + "&dtm=20170106";
+                vector_url = base_url + "weather?lt1=" + lt1 + "&lt2=" + lt2 + "&ln1=" + ln1 + "&ln2=" + ln2 + "&dtm=" + dtm; //20170106";
                 
-                raster_url = base_url + "weather_raster?lt1=" + lt1 + "&lt2=" + lt2 + "&ln1=" + ln1 + "&ln2=" + ln2 + "&dtm=2017010600";
+                raster_url = base_url + "weather_raster?lt1=" + lt1 + "&lt2=" + lt2 + "&ln1=" + ln1 + "&ln2=" + ln2 + "&dtm=" + dtm; //"&dtm=2017010600";
 
-                swave_url = base_url + "weather_swave?lt1=" + lt1 + "&lt2=" + lt2 + "&ln1=" + ln1 + "&ln2=" + ln2 + "&dtm=2017011200";
+                swave_url = base_url + "weather_swave?lt1=" + lt1 + "&lt2=" + lt2 + "&ln1=" + ln1 + "&ln2=" + ln2 + "&dtm=" + dtm; //"&dtm=2017011200";
+
+
 
                 $.ajax({
                     dataType: 'json',
@@ -319,15 +394,18 @@
 
             $('#nextData').click(function (e) 
                 {
-                
-                
-
                 try 
                     {
                     wind10mLayer.getSource().clear();
                     windGustLayer.getSource().clear();
                     wind925mbLayer.getSource().clear();
                     wind975mbLayer.getSource().clear();
+
+                    windDataSource.clear();
+                    gustDataSource.clear();
+                    wind925DataSource.clear();
+                    wind975DataSource.clear();
+
                     windDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(wind_data[cindex%4].wd_10m,{'featureProjection':'EPSG:3857'}));
                     gustDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(wind_data[cindex%4].gust,{'featureProjection':'EPSG:3857'}));           
                     wind925DataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(wind_data[cindex%4].wd_925m,{'featureProjection':'EPSG:3857'}));
@@ -336,17 +414,79 @@
                     tcdcLowLayer.getSource().clear();
                     tcdcMiddleLayer.getSource().clear();
                     tcdcConvectiveLayer.getSource().clear();
+
+                    lclCloudDataSource.clear();
+                    mclCloudDataSource.clear();
+                    cclCloudDataSource.clear();
+
                     lclCloudDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(cloud_data[cindex%4].lcl,{'featureProjection':'EPSG:3857'}));
                     mclCloudDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(cloud_data[cindex%4].mcl,{'featureProjection':'EPSG:3857'}));
                     cclCloudDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(cloud_data[cindex%4].ccl,{'featureProjection':'EPSG:3857'}));
+
                     presLowLayer.getSource().clear();
                     presMiddleLayer.getSource().clear();
                     presConvectiveLayer.getSource().clear();
+
+                    lcblCloudDataSource.clear();
+                    mcblCloudDataSource.clear();
+                    ccblCloudDataSource.clear();
+
                     lcblCloudDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(cloud_data[cindex%4].lcbl,{'featureProjection':'EPSG:3857'}));
                     mcblCloudDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(cloud_data[cindex%4].mcbl,{'featureProjection':'EPSG:3857'}));
                     ccblCloudDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(cloud_data[cindex%4].ccbl,{'featureProjection':'EPSG:3857'}));
+
+                    dsw1DataSource.clear();
+                    dsw2DataSource.clear();
+                    hsw1DataSource.clear();
+                    hsw2DataSource.clear();
+                    tsw1DataSource.clear();
+                    tsw2DataSource.clear();
+                    whgtDataSource.clear();
+                    swperDataSource.clear();
+                    mpwwDataSource.clear();
+                    dirpwsDataSource.clear();
+                    swhsDataSource.clear();
+                    maxswhsDataSource.clear();
+
+
+                    dsw1DataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(swave_data[cindex%4].dsw1,{'featureProjection':'EPSG:3857'}));
+                    dsw2DataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(swave_data[cindex%4].dsw2,{'featureProjection':'EPSG:3857'}));
+                    hsw1DataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(swave_data[cindex%4].hsw1,{'featureProjection':'EPSG:3857'}));  
+                    hsw2DataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(swave_data[cindex%4].hsw2,{'featureProjection':'EPSG:3857'}));
+                    tsw1DataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(swave_data[cindex%4].tsw1,{'featureProjection':'EPSG:3857'}));
+                    tsw2DataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(swave_data[cindex%4].tsw2,{'featureProjection':'EPSG:3857'}));
+                    whgtDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(swave_data[cindex%4].shwws,{'featureProjection':'EPSG:3857'}));
+                    swperDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(swave_data[cindex%4].perpws,{'featureProjection':'EPSG:3857'}));
+                    mpwwDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(swave_data[cindex%4].mpww,{'featureProjection':'EPSG:3857'}));
+                    dirpwsDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(swave_data[cindex%4].dirpws,{'featureProjection':'EPSG:3857'}));
+                    swhsDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(swave_data[cindex%4].swhs,{'featureProjection':'EPSG:3857'}));
+                    maxswhsDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(swave_data[cindex%4].swhs,{'featureProjection':'EPSG:3857'}));
+
+                    var data = responseRasterData.features[cindex%4];
+                    responseWS10mContData = getByName(data,'WS10m');
+                    ws10mContDataSource.clear();
+                    ws10mContDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(responseWS10mContData,{'featureProjection':'EPSG:3857'}));
+                            
+                        
+                    responsePRMSLContData = getByName(data,'PRMSL');
+                    prContDataSource.clear();
+                    prContDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(responsePRMSLContData,{'featureProjection':'EPSG:3857'}));
+                            
+                    responseTMP2mContData = getByName(data,'TMP2m');
+                    tmp2mContDataSource.clear();
+                    tmp2mContDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(responseTMP2mContData,{'featureProjection':'EPSG:3857'}));
+                            
+                    responseHMDT2mContData = getByName(data,'HMDT2m');
+                    hmdt2mContDataSource.clear();
+                    hmdt2mContDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(responseHMDT2mContData,{'featureProjection':'EPSG:3857'}));
+                    
+                    responseAPCPContData = getByName(data,'APCP');
+                    apcpContDataSource.clear();
+                    apcpContDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(responseAPCPContData,{'featureProjection':'EPSG:3857'}))
+
+
                     cindex=cindex+1;
-                    console.log(cindex%4);
+                   // console.log(cindex%4);
                     }
                 catch(err)
                     {
@@ -381,7 +521,21 @@
                       </h1>
                     </div>
                     <div id="collapseOne" class="panel-collapse collapse">
-                      <div class="panel-body">
+                      <div class="panel-body btn-group" role="group">
+                        <span class="glyphicon glyphicon-map-marker btn-lg"></span>
+                        <button id="location1" type="button" class="btn btn-default" >
+                            09° 38’ 33” S / 09° 40’ 15” E
+                        </button>
+                        <span class="divider"></span>
+                        <span class="glyphicon glyphicon-map-marker btn-lg"></span>
+                        <button id="location2" type="button" class="btn btn-default" >
+                            10⁰ 30' 42” N / 100⁰ 17’ 12” E
+                        </button>
+                        <span class="divider"></span>
+                        <span class="glyphicon glyphicon-map-marker btn-lg"></span>
+                        <button id="location3" type="button" class="btn btn-default" >
+                            04° 06.140' N / 103° 30.390' E
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -607,7 +761,66 @@
 
         <nav>
             <div id="mySideTopnav" class="topnavmenu">
-                <div class="table-responsive">
+                <div class="row">
+                    <div class="col-md-12 col-md-offset-2 text-center">
+                        <div class="btn-toolbar" role=toolbar aria-label="Toolbar with button groups"> 
+                            <div class="btn-group" role=group aria-label="First group"> 
+                                <button type=button class="btn btn-default">00</button> 
+                                <button type=button class="btn btn-default">03</button> 
+                                <button type=button class="btn btn-default">06</button> 
+                                <button type=button class="btn btn-default">09</button> 
+                                <button type=button class="btn btn-default">12</button> 
+                                <button type=button class="btn btn-default">15</button> 
+                                <button type=button class="btn btn-default">18</button> 
+                                <button type=button class="btn btn-default">21</button> 
+                            </div> 
+                            
+                            <div class=btn-group role=group aria-label="Second group"> 
+                                <button type=button class="btn btn-default">00</button> 
+                                <button type=button class="btn btn-default">03</button> 
+                                <button type=button class="btn btn-default">06</button> 
+                                <button type=button class="btn btn-default">09</button> 
+                                <button type=button class="btn btn-default">12</button> 
+                                <button type=button class="btn btn-default">15</button> 
+                                <button type=button class="btn btn-default">18</button> 
+                                <button type=button class="btn btn-default">21</button>
+                            </div> 
+                            
+                            <div class=btn-group role=group aria-label="Third group"> 
+                                <button type=button class="btn btn-default">00</button> 
+                                <button type=button class="btn btn-default">03</button> 
+                                <button type=button class="btn btn-default">06</button> 
+                                <button type=button class="btn btn-default">09</button> 
+                                <button type=button class="btn btn-default">12</button> 
+                                <button type=button class="btn btn-default">15</button> 
+                                <button type=button class="btn btn-default">18</button> 
+                                <button type=button class="btn btn-default">21</button>
+                            </div> 
+                            <!--
+                            <div class=btn-group role=group aria-label="Third group"> 
+                                <button type=button class="btn btn-default">00</button> 
+                                <button type=button class="btn btn-default">03</button> 
+                                <button type=button class="btn btn-default">06</button> 
+                                <button type=button class="btn btn-default">09</button> 
+                                <button type=button class="btn btn-default">12</button> 
+                                <button type=button class="btn btn-default">15</button> 
+                                <button type=button class="btn btn-default">18</button> 
+                                <button type=button class="btn btn-default">21</button>
+                            </div> 
+                            <div class=btn-group role=group aria-label="Third group"> 
+                                <button type=button class="btn btn-default">00</button> 
+                                <button type=button class="btn btn-default">03</button> 
+                                <button type=button class="btn btn-default">06</button> 
+                                <button type=button class="btn btn-default">09</button> 
+                                <button type=button class="btn btn-default">12</button> 
+                                <button type=button class="btn btn-default">15</button> 
+                                <button type=button class="btn btn-default">18</button> 
+                                <button type=button class="btn btn-default">21</button>
+                            </div> -->
+                        </div>
+                    </div>
+                </div>
+<!--            <div class="table-responsive">
                     <table class="table  table-bordered">
                         <tr class="text-center">
                             <th colspan="8" class="text-center">MONDAY</th>
@@ -674,8 +887,8 @@
                             <td>12</td>
                             <td>18</td>
                         </tr>
-                    </table>
-                </div>
+                    </table> 
+                </div>-->
             </div>
                 <!--
                 <div class="col-md-1">
@@ -2220,7 +2433,9 @@
             var marker = function(obj)
                     {                    
                     siteSelectionVectorLayer.getSource().clear();
-                    var coord4326 = ol.proj.transform(obj.coordinate, 'EPSG:3857', 'EPSG:4326');                    
+                    var coord4326 = ol.proj.transform(obj.coordinate, 'EPSG:3857', 'EPSG:4326');
+//                    console.log(obj.coordinate);       
+//                    console.log(coord4326);             
                     targetSiteLocation = coord4326;
                     var  template = '[ {x} | {y} ]',
                         iconStyle = new ol.style.Style({

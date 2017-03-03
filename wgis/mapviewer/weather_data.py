@@ -11,16 +11,18 @@ def cld_pr2feet(clpr):
 	return clhgt_feet
 
 
-def get_weather_data(lt1, lt2, ln1, ln2, dtm):
+def get_weather_data(lt1, lt2, ln1, ln2, dt, tm):
 	if os.environ.has_key('dls_path'):
 		dls_path = os.environ['dls_path']
 
 	R2D = 57.2958
 
 #	lt1, lt2, ln1, ln2 = 20,25,335,340
-	grbfs =  ["gfs.t00z.pgrb2.0p25.f001","gfs.t00z.pgrb2.0p25.f007","gfs.t00z.pgrb2.0p25.f013","gfs.t00z.pgrb2.0p25.f019"]
+	tms = [1,4,7,10,13]
+	fhead = "gfs.t%sz.pgrb2.0p25.f" % tm
+#	grbfs =  ["gfs.t%sz.pgrb2.0p25.f001" % tm,"gfs.t%sz.pgrb2.0p25.f004" % tm,"gfs.t%sz.pgrb2.0p25.f007" % tm,"gfs.t%sz.pgrb2.0p25.f010" % tm]
 #	grbfs =  ["gfs.t00z.pgrb2.0p25.f001","gfs.t00z.pgrb2.0p25.f002","gfs.t00z.pgrb2.0p25.f003","gfs.t00z.pgrb2.0p25.f004"]
-
+	grbfs = [ fhead + "%03d" % td for td in tms]
 
 	ws10_all, ws925_all, ws975_all = [], [], []
 	wd10_all, wd925_all, wd975_all = [], [], []
@@ -31,7 +33,7 @@ def get_weather_data(lt1, lt2, ln1, ln2, dtm):
 
 	for f in grbfs:
 #		data = pygrib.open('/home/megha/Synergy/aws/dls-prod/dls-data/%s/00/%s' % (dtm, f))
-		data = pygrib.open(os.path.join(dls_path,'dls-data',dtm,'00',f))
+		data = pygrib.open(os.path.join(dls_path,'dls-data',dt, tm,f))
 		t2 = data.select(shortName="2t",typeOfLevel="heightAboveGround",level=2)[0]
 		prmsl = data.select(shortName="prmsl",typeOfLevel="meanSea",level=0)[0]
 		rh = data.select(shortName="r",typeOfLevel="heightAboveGround",level=2)[0]
@@ -169,14 +171,18 @@ def get_weather_data(lt1, lt2, ln1, ln2, dtm):
 
 	features = [ [{"type": "Feature", "geometry": {"type": "Point", "coordinates" : [ln, lt]}, "properties": { "wind" : w['wind'] , "cloud" : c['cloud'], "tpha" : t['tpha']  } }]  for dllwsd in wct_all for ln,lt,w,c,t in dllwsd ]
 
-	f_coll = {"type": "FeatureCollection", "features": features }
+	other_properties = [{"timestamp": dt+tm, "hours": hr} for hr in tms]
+	f_coll = {"type": "FeatureCollection", "features": features, "properties" : other_properties}
 
 	return json.dumps(f_coll)
 
 if __name__ == "__main__":
 	lt1, lt2, ln1, ln2 = 20,21,335,336
-	wjson_data = get_weather_data(lt1, lt2, ln1, ln2, "20170114")
-	with open('wjson.geojson','w') as wf:
+	dtm = "2017022806"
+	dt = dtm[:8]
+	tm = dtm[8:]
+	wjson_data = get_weather_data(lt1, lt2, ln1, ln2, dt, tm)
+	with open('wjson_%s.geojson'% dtm,'w') as wf:
 		wf.write(wjson_data)
 		
 
