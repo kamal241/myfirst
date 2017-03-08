@@ -31,33 +31,6 @@
         var sls = [new SiteLocation("DD",-9.642500,9.67083333), 
                     new  SiteLocation("DD",10.5116667,100.286667),
                     new  SiteLocation("DD",4.1023333,103.506500)];
-	var noOfWdata = 8;
-
-	function WeatherData(type, desc, datas)
-		{
-		this.type = type;
-		this.description = desc;
-		this.datas = datas;
-		this.msgWhileLoading = "Loading " + this.description; 
-		this.msgOnSuccess = this.description + "data loaded successfully";
-		this.msgOnFailure = this.description + "data could not be loaded";
-		}
-	
-	var wdobjs = [ new WeatherData("TPHA", "Temperature, Pressure, Humidity and Precipitation",["Temp","PRES"]),
-		new WeatherData("WIND", "Wind 10m, 925mb, 975mb and gust",["Wind"]),
-		new WeatherData("CLOUD", "Cloud cover and Cloud base height",["Cloud Cover","Cloud Base Height"]),
-		new WeatherData("SWELLSEAWAVE", "Swell and Sea wave",["Swell","Sea Wave"]),
-		new WeatherData("RASTER", "Temperature, Pressure, Humidity and Precipitation [Raster]",["Temp","PRES"])];
-
-	var wddobjs = {};
-	wddobjs["tpha"] = new WeatherData("TPHA", "Temperature, Pressure, Humidity and Precipitation",["Temp","PRES"]);
-	wddobjs["wind"] = new WeatherData("WIND", "Wind 10m, 925mb, 975mb and gust",["Wind"]);
-	wddobjs["cloud"] = new WeatherData("CLOUD", "Cloud cover and Cloud base height",["Cloud Cover","Cloud Base Height"]);
-	wddobjs["swave"] = new WeatherData("SWELLSEAWAVE", "Swell and Sea wave",["Swell","Sea Wave"]);
-        wddobjs["raster"] = new WeatherData("RASTER", "Temperature, Pressure, Humidity and Precipitation",["Temp","PRES"]);
-	var currentDate = new Date();
-	var initialDate = new Date();
-	var currentDtm;
         var wdata;
         var wind_data = {};
         var sdata;
@@ -65,7 +38,6 @@
         var cindex=0;
         var responseRasterData, responseWS10mContData, responsePRMSLContData, responseTMP2mContData, responseHMDT2mContData, responseAPCPContData;
         var responseSwaveData;
-	var loadingInfoMessageQueue = {};
         var windArrows = ["{% static 'mapviewer/images/arrows/gm_arrow.png' %}",
                     "{% static 'mapviewer/images/arrows/bm_arrow.png' %}",
                     "{% static 'mapviewer/images/arrows/rm_arrow.png' %}",
@@ -80,7 +52,7 @@
         var start_map_pin = "{% static 'mapviewer/images/map-marker/start_bb2.png' %}";
 
         var wind_raw = {"gust":{"type": "FeatureCollection","features": []},"wd_10m":{"type": "FeatureCollection","features": []},"ws_10m":{"type": "FeatureCollection","features": []},"wd_925m":{"type": "FeatureCollection","features": []},"ws_925m":{"type": "FeatureCollection","features": []},"wd_975m":{"type": "FeatureCollection","features": []},"ws_975m":{"type": "FeatureCollection","features": []}};
-        wind_data[0] = new Object(); //{"gust":{"type": "FeatureCollection","features": []},"wd_10m":{"type": "FeatureCollection","features": []},"ws_10m":{"type": "FeatureCollection","features": []},"wd_925m":{"type": "FeatureCollection","features": []},"ws_925m":{"type": "FeatureCollection","features": []},"wd_975m":{"type": "FeatureCollection","features": []},"ws_975m":{"type": "FeatureCollection","features": []}};
+        wind_data[0] = {"gust":{"type": "FeatureCollection","features": []},"wd_10m":{"type": "FeatureCollection","features": []},"ws_10m":{"type": "FeatureCollection","features": []},"wd_925m":{"type": "FeatureCollection","features": []},"ws_925m":{"type": "FeatureCollection","features": []},"wd_975m":{"type": "FeatureCollection","features": []},"ws_975m":{"type": "FeatureCollection","features": []}};
         wind_data[1] = {"gust":{"type": "FeatureCollection","features": []},"wd_10m":{"type": "FeatureCollection","features": []},"ws_10m":{"type": "FeatureCollection","features": []},"wd_925m":{"type": "FeatureCollection","features": []},"ws_925m":{"type": "FeatureCollection","features": []},"wd_975m":{"type": "FeatureCollection","features": []},"ws_975m":{"type": "FeatureCollection","features": []}};
         wind_data[2] = {"gust":{"type": "FeatureCollection","features": []},"wd_10m":{"type": "FeatureCollection","features": []},"ws_10m":{"type": "FeatureCollection","features": []},"wd_925m":{"type": "FeatureCollection","features": []},"ws_925m":{"type": "FeatureCollection","features": []},"wd_975m":{"type": "FeatureCollection","features": []},"ws_975m":{"type": "FeatureCollection","features": []}};
         wind_data[3] = {"gust":{"type": "FeatureCollection","features": []},"wd_10m":{"type": "FeatureCollection","features": []},"ws_10m":{"type": "FeatureCollection","features": []},"wd_925m":{"type": "FeatureCollection","features": []},"ws_925m":{"type": "FeatureCollection","features": []},"wd_975m":{"type": "FeatureCollection","features": []},"ws_975m":{"type": "FeatureCollection","features": []}};
@@ -118,28 +90,35 @@
                  }
 
             var base_url = "http://ec2-54-254-159-111.ap-southeast-1.compute.amazonaws.com:8000/mapviewer/";
-            var vector_url = "http://localhost:8000/mapviewer/weather?lt1=20&lt2=25&ln1=70&ln2=75&dtm=20170114";
-            var raster_url = "http://localhost:8000/mapviewer/weather_raster?lt1=20&lt2=25&ln1=70&ln2=75&dtm=2017011400";
+//            var vector_url = "http://localhost:8000/mapviewer/weather?lt1=20&lt2=25&ln1=70&ln2=75&dtm=20170114";
+//            var raster_url = "http://localhost:8000/mapviewer/weather_raster?lt1=20&lt2=25&ln1=70&ln2=75&dtm=2017011400";
 
 
             var vector_success = function(data)
                     {
-		//	$("#loadingMessage").hide();
-		    updateLoadingInfoQueue(0);
-                    updateLoadingInfoQueue(1);
-		    updateLoadingInfoQueue(2);
-
                     wdata = data;
                     wind_data = {};
                     cloud_data = {};
-		    var  nof_wdata = wdata.properties.length;
-		    var nit=0;
-			
-		    for(nit=0; nit<nof_wdata; nit++)
-			{
-			wind_data[nit] = {"gust":{"type": "FeatureCollection","features": []},"wd_10m":{"type": "FeatureCollection","features": []},"ws_10m":{"type": "FeatureCollection","features": []},"wd_925m":{"type": "FeatureCollection","features": []},"ws_925m":{"type": "FeatureCollection","features": []},"wd_975m":{"type": "FeatureCollection","features": []},"ws_975m":{"type": "FeatureCollection","features": []}};
-			cloud_data[nit] = {"lcl":{"type": "FeatureCollection","features": []},"mcl":{"type": "FeatureCollection","features": []},"ccl":{"type": "FeatureCollection","features": []},"lcbl":{"type": "FeatureCollection","features": []},"mcbl":{"type": "FeatureCollection","features": []},"ccbl":{"type": "FeatureCollection","features": []}};
-			}
+
+                    wind_data[0] = {"gust":{"type": "FeatureCollection","features": []},"wd_10m":{"type": "FeatureCollection","features": []},"ws_10m":{"type": "FeatureCollection","features": []},"wd_925m":{"type": "FeatureCollection","features": []},"ws_925m":{"type": "FeatureCollection","features": []},"wd_975m":{"type": "FeatureCollection","features": []},"ws_975m":{"type": "FeatureCollection","features": []}};
+                    wind_data[1] = {"gust":{"type": "FeatureCollection","features": []},"wd_10m":{"type": "FeatureCollection","features": []},"ws_10m":{"type": "FeatureCollection","features": []},"wd_925m":{"type": "FeatureCollection","features": []},"ws_925m":{"type": "FeatureCollection","features": []},"wd_975m":{"type": "FeatureCollection","features": []},"ws_975m":{"type": "FeatureCollection","features": []}};
+                    wind_data[2] = {"gust":{"type": "FeatureCollection","features": []},"wd_10m":{"type": "FeatureCollection","features": []},"ws_10m":{"type": "FeatureCollection","features": []},"wd_925m":{"type": "FeatureCollection","features": []},"ws_925m":{"type": "FeatureCollection","features": []},"wd_975m":{"type": "FeatureCollection","features": []},"ws_975m":{"type": "FeatureCollection","features": []}};
+                    wind_data[3] = {"gust":{"type": "FeatureCollection","features": []},"wd_10m":{"type": "FeatureCollection","features": []},"ws_10m":{"type": "FeatureCollection","features": []},"wd_925m":{"type": "FeatureCollection","features": []},"ws_925m":{"type": "FeatureCollection","features": []},"wd_975m":{"type": "FeatureCollection","features": []},"ws_975m":{"type": "FeatureCollection","features": []}};
+                    wind_data[4] = {"gust":{"type": "FeatureCollection","features": []},"wd_10m":{"type": "FeatureCollection","features": []},"ws_10m":{"type": "FeatureCollection","features": []},"wd_925m":{"type": "FeatureCollection","features": []},"ws_925m":{"type": "FeatureCollection","features": []},"wd_975m":{"type": "FeatureCollection","features": []},"ws_975m":{"type": "FeatureCollection","features": []}};
+                    wind_data[5] = {"gust":{"type": "FeatureCollection","features": []},"wd_10m":{"type": "FeatureCollection","features": []},"ws_10m":{"type": "FeatureCollection","features": []},"wd_925m":{"type": "FeatureCollection","features": []},"ws_925m":{"type": "FeatureCollection","features": []},"wd_975m":{"type": "FeatureCollection","features": []},"ws_975m":{"type": "FeatureCollection","features": []}};
+
+                    cloud_data[0] = {"lcl":{"type": "FeatureCollection","features": []},"mcl":{"type": "FeatureCollection","features": []},"ccl":{"type": "FeatureCollection","features": []},"lcbl":{"type": "FeatureCollection","features": []},"mcbl":{"type": "FeatureCollection","features": []},"ccbl":{"type": "FeatureCollection","features": []}};
+
+                    cloud_data[1] = {"lcl":{"type": "FeatureCollection","features": []},"mcl":{"type": "FeatureCollection","features": []},"ccl":{"type": "FeatureCollection","features": []},"lcbl":{"type": "FeatureCollection","features": []},"mcbl":{"type": "FeatureCollection","features": []},"ccbl":{"type": "FeatureCollection","features": []}};
+
+                    cloud_data[2] = {"lcl":{"type": "FeatureCollection","features": []},"mcl":{"type": "FeatureCollection","features": []},"ccl":{"type": "FeatureCollection","features": []},"lcbl":{"type": "FeatureCollection","features": []},"mcbl":{"type": "FeatureCollection","features": []},"ccbl":{"type": "FeatureCollection","features": []}};
+
+                    cloud_data[3] = {"lcl":{"type": "FeatureCollection","features": []},"mcl":{"type": "FeatureCollection","features": []},"ccl":{"type": "FeatureCollection","features": []},"lcbl":{"type": "FeatureCollection","features": []},"mcbl":{"type": "FeatureCollection","features": []},"ccbl":{"type": "FeatureCollection","features": []}};
+
+                    cloud_data[4] = {"lcl":{"type": "FeatureCollection","features": []},"mcl":{"type": "FeatureCollection","features": []},"ccl":{"type": "FeatureCollection","features": []},"lcbl":{"type": "FeatureCollection","features": []},"mcbl":{"type": "FeatureCollection","features": []},"ccbl":{"type": "FeatureCollection","features": []}};
+
+                    cloud_data[5] = {"lcl":{"type": "FeatureCollection","features": []},"mcl":{"type": "FeatureCollection","features": []},"ccl":{"type": "FeatureCollection","features": []},"lcbl":{"type": "FeatureCollection","features": []},"mcbl":{"type": "FeatureCollection","features": []},"ccbl":{"type": "FeatureCollection","features": []}};
+
 
                     $.each(wdata.features, 
                         function (key, val)             // All locations
@@ -195,7 +174,6 @@
 
             var raster_success = function(datas)
                     {
-		    updateLoadingInfoQueue(4);
                     responseRasterData = datas;
                     data = datas.features[0];
                     responseWS10mContData = getByName(data,'WS10m');
@@ -220,25 +198,15 @@
 
             var swave_success = function(data)
                     {
-                    updateLoadingInfoQueue(3);
-		    responseSwaveData = data;
+                    responseSwaveData = data;
                     sdata = data;
-		    var nof_sdata = sdata.features[0].properties.dsw1.length;
-                    var nit=0;
-
-                    for(sit=0; sit<nof_sdata; sit++)
-                        {
-			swave_data[sit] = {"dsw1":{"type": "FeatureCollection","features": []},"hsw1":{"type": "FeatureCollection","features": []},"tsw1":{"type": "FeatureCollection","features": []},"dsw2":{"type": "FeatureCollection","features": []},"hsw2":{"type": "FeatureCollection","features": []},"tsw2":{"type": "FeatureCollection","features": []},"perpws":{"type": "FeatureCollection","features": []},"mpww":{"type": "FeatureCollection","features": []},"swhs":{"type": "FeatureCollection","features": []},"dirpws":{"type": "FeatureCollection","features": []},"shwws":{"type": "FeatureCollection","features": []}};
-                        }
-
-			/*	
                     swave_data[0] = {"dsw1":{"type": "FeatureCollection","features": []},"hsw1":{"type": "FeatureCollection","features": []},"tsw1":{"type": "FeatureCollection","features": []},"dsw2":{"type": "FeatureCollection","features": []},"hsw2":{"type": "FeatureCollection","features": []},"tsw2":{"type": "FeatureCollection","features": []},"perpws":{"type": "FeatureCollection","features": []},"mpww":{"type": "FeatureCollection","features": []},"swhs":{"type": "FeatureCollection","features": []},"dirpws":{"type": "FeatureCollection","features": []},"shwws":{"type": "FeatureCollection","features": []}};
                     swave_data[1] = {"dsw1":{"type": "FeatureCollection","features": []},"hsw1":{"type": "FeatureCollection","features": []},"tsw1":{"type": "FeatureCollection","features": []},"dsw2":{"type": "FeatureCollection","features": []},"hsw2":{"type": "FeatureCollection","features": []},"tsw2":{"type": "FeatureCollection","features": []},"perpws":{"type": "FeatureCollection","features": []},"mpww":{"type": "FeatureCollection","features": []},"swhs":{"type": "FeatureCollection","features": []},"dirpws":{"type": "FeatureCollection","features": []},"shwws":{"type": "FeatureCollection","features": []}};
                     swave_data[2] = {"dsw1":{"type": "FeatureCollection","features": []},"hsw1":{"type": "FeatureCollection","features": []},"tsw1":{"type": "FeatureCollection","features": []},"dsw2":{"type": "FeatureCollection","features": []},"hsw2":{"type": "FeatureCollection","features": []},"tsw2":{"type": "FeatureCollection","features": []},"perpws":{"type": "FeatureCollection","features": []},"mpww":{"type": "FeatureCollection","features": []},"swhs":{"type": "FeatureCollection","features": []},"dirpws":{"type": "FeatureCollection","features": []},"shwws":{"type": "FeatureCollection","features": []}};
                     swave_data[3] = {"dsw1":{"type": "FeatureCollection","features": []},"hsw1":{"type": "FeatureCollection","features": []},"tsw1":{"type": "FeatureCollection","features": []},"dsw2":{"type": "FeatureCollection","features": []},"hsw2":{"type": "FeatureCollection","features": []},"tsw2":{"type": "FeatureCollection","features": []},"perpws":{"type": "FeatureCollection","features": []},"mpww":{"type": "FeatureCollection","features": []},"swhs":{"type": "FeatureCollection","features": []},"dirpws":{"type": "FeatureCollection","features": []},"shwws":{"type": "FeatureCollection","features": []}};
                     swave_data[4] = {"dsw1":{"type": "FeatureCollection","features": []},"hsw1":{"type": "FeatureCollection","features": []},"tsw1":{"type": "FeatureCollection","features": []},"dsw2":{"type": "FeatureCollection","features": []},"hsw2":{"type": "FeatureCollection","features": []},"tsw2":{"type": "FeatureCollection","features": []},"perpws":{"type": "FeatureCollection","features": []},"mpww":{"type": "FeatureCollection","features": []},"swhs":{"type": "FeatureCollection","features": []},"dirpws":{"type": "FeatureCollection","features": []},"shwws":{"type": "FeatureCollection","features": []}};
                     swave_data[5] = {"dsw1":{"type": "FeatureCollection","features": []},"hsw1":{"type": "FeatureCollection","features": []},"tsw1":{"type": "FeatureCollection","features": []},"dsw2":{"type": "FeatureCollection","features": []},"hsw2":{"type": "FeatureCollection","features": []},"tsw2":{"type": "FeatureCollection","features": []},"perpws":{"type": "FeatureCollection","features": []},"mpww":{"type": "FeatureCollection","features": []},"swhs":{"type": "FeatureCollection","features": []},"dirpws":{"type": "FeatureCollection","features": []},"shwws":{"type": "FeatureCollection","features": []}};
-			*/
+
                     $.each(sdata.features, 
                         function (key, val)             // All locations
                             {
@@ -294,15 +262,11 @@
                     */
                     };
 
-            function getTimeStampForData(toff) 
+            function getTimeStampForData() 
                 {
                 var now = new Date();
                 var cdate = new Date(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(),  now.getUTCHours(), now.getUTCMinutes(), now.getUTCSeconds());
-		currentDate = new Date(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(),  now.getUTCHours(), now.getUTCMinutes(), now.getUTCSeconds()); //new Date(cdate.toUTCString());
-		initialDate = new Date(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(),  now.getUTCHours() , now.getUTCMinutes(), now.getUTCSeconds()); //new Date(cdate.toUTCString());
-		currentDate.setHours(currentDate.getHours()+toff);
-		initialDate.setHours(initialDate.getHours()+toff);
-                var tzoffset = cdate.getTimezoneOffset();
+                var tzoffzet = cdate.getTimezoneOffset();
                 var fcids = ['00','06','12','18'];
                 var hrs = cdate.getHours();
 		console.log("Hrs " + hrs);
@@ -385,95 +349,18 @@
                     addLocation(coord4326);
                 });            
 
-	    function displayLoadingInfo()
-		{
-		var loadingInfoMessage = "";
-		if (Object.keys(loadingInfoMessageQueue).length > 0)
-			{
-			for(var key in loadingInfoMessageQueue)
-	                        {
-				var tobj = loadingInfoMessageQueue[key];
-				loadingInfoMessage = loadingInfoMessage + "<span>" + tobj.msgWhileLoading + "</span><br>";
-	                        }
-//			console.log(loadingInfoMessage);
-			$("#loadingMessage").html(loadingInfoMessage);
-			$("#loadingMessage").show();
-			}
-		else
-			{
-			$("#loadingMessage").hide();
-			alert("TPHA, Wind, Cloud and Sea Wave data loaded successfully.\n Select layers to view from left panel.");
-			}
-		}
-
-	    function addToLoadingInfoQueue(msgForData)
-		{
-		loadingInfoMessageQueue[wdobjs[msgForData].type] = wdobjs[msgForData];
-//		loadingInfoMessageQueue.push(wdobjs[msgForData]);
-		displayLoadingInfo();
-//		loadingInfoMessage = loadingInfoMessage + loadigInfoMessages[msgForData];
-//		$("#loadingMessage")
-		}
-
-	    function updateLoadingInfoQueue(msgForData)
-                {
-                delete loadingInfoMessageQueue[wdobjs[msgForData].type];
-                displayLoadingInfo();
-//              loadingInfoMessage = loadingInfoMessage + loadigInfoMessages[msgForData];
-//              $("#loadingMessage")
-                }
-
-	    function toDisplayDate(dtm)
-		{
-//		var sdt = "";
-//		var sdt = new Date(dtm.substr(0,4)+"-"+dtm.substr(4,2)+"-"+dtm.substr(6,2));
-//		sdt.setHours(dtm.substr(8,2));
-//		currentDate = sdt;
-//		return sdt;
-		return currentDate;
-		}
-
-	function getTZOffset(ln)  
-		{    
-		var lnf=0;var lnr=0;var nln =0;
-		lnf = parseInt(ln/180); 
-		lnr = 0;    
-		var tzoffset=0;    
-		if(lnf==1)
-		    	{
-		      	nln=360-ln;     
-		      	lnr=-1;     
-		     	tzoffset=lnr * parseInt(nln/15);
-		    	}    
-		if(lnf==0)     
-			{     
-		      	nln=ln;     
-		      	lnr=1;     
-		      	tzoffset=lnr * parseInt(nln/15);
-			} 
-		   return tzoffset;  
-		}
-
-
-
             $('#loadData').click(function (e) 
                 {
-		if(targetSiteLocation != undefined)
-			{
+                var dtm = getTimeStampForData();
+                console.log("TimeStamp is "+dtm);
+               // dtm = "2017022806";
                 var lt = targetSiteLocation[1];
-                var ln = targetSiteLocation[0]%360;
+                var ln = targetSiteLocation[0];
 
                 if (ln<0)
                     {
                         ln = 360 + (ln % 360);
                     }
-
-		var tzo = getTZOffset(ln);
-		var dtm = getTimeStampForData(tzo);
-                currentDtm = dtm;
-                var sdt = toDisplayDate(dtm);
-                $("#wdTimeStamp").html(currentDate.toUTCString());
-		console.log(cindex + ":" + tzo  + " : " + currentDate + ":" +initialDate);
 
                 var lt1,lt2,ln1,ln2;   
                 lt1 = lt - 2.5;
@@ -485,42 +372,30 @@
                 
                 raster_url = base_url + "weather_raster?lt1=" + lt1 + "&lt2=" + lt2 + "&ln1=" + ln1 + "&ln2=" + ln2 + "&dtm=" + dtm; //"&dtm=2017010600";
 
-                swave_url = base_url + "weather_swave?lt1=" + lt1 + "&lt2=" + lt2 + "&ln1=" + ln1 + "&ln2=" + ln2 + "&dtm=" + "2017030712";
+                swave_url = base_url + "weather_swave?lt1=" + lt1 + "&lt2=" + lt2 + "&ln1=" + ln1 + "&ln2=" + ln2 + "&dtm=" + dtm; //"&dtm=2017011200";
 
-
+		function showLoadingMessage()
+			{
+			}
 
                 $.ajax({
                     dataType: 'json',
                     url: vector_url,
-                    success: vector_success,
-                    beforesend: (function() 
-					{
-					addToLoadingInfoQueue(0);
-					addToLoadingInfoQueue(1);
-					addToLoadingInfoQueue(2);
-					}
-				)()	//$("#loadingMessage").show()
-		    });
+                    success: vector_success
+                    });
 
                 $.ajax({
                     dataType: 'json',
                     url: raster_url,
-                    success: raster_success,
-		    beforesend : addToLoadingInfoQueue(4)
+                    success: raster_success
                     });
 
                 $.ajax({
                     dataType: 'json',
                     url: swave_url,
-                    success: swave_success,
-		    beforesend : addToLoadingInfoQueue(3)
+                    success: swave_success
                     });
-		}
-		else
-			{
-			alert("Please specify the location first.");
-			}
-		
+
                 });
 
             $('#nextData').click(function (e) 
@@ -537,10 +412,10 @@
                     wind925DataSource.clear();
                     wind975DataSource.clear();
 
-                    windDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(wind_data[cindex%noOfWdata].wd_10m,{'featureProjection':'EPSG:3857'}));
-                    gustDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(wind_data[cindex%noOfWdata].gust,{'featureProjection':'EPSG:3857'}));           
-                    wind925DataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(wind_data[cindex%noOfWdata].wd_925m,{'featureProjection':'EPSG:3857'}));
-                    wind975DataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(wind_data[cindex%noOfWdata].wd_975m,{'featureProjection':'EPSG:3857'}));
+                    windDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(wind_data[cindex%4].wd_10m,{'featureProjection':'EPSG:3857'}));
+                    gustDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(wind_data[cindex%4].gust,{'featureProjection':'EPSG:3857'}));           
+                    wind925DataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(wind_data[cindex%4].wd_925m,{'featureProjection':'EPSG:3857'}));
+                    wind975DataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(wind_data[cindex%4].wd_975m,{'featureProjection':'EPSG:3857'}));
 
                     tcdcLowLayer.getSource().clear();
                     tcdcMiddleLayer.getSource().clear();
@@ -550,9 +425,9 @@
                     mclCloudDataSource.clear();
                     cclCloudDataSource.clear();
 
-                    lclCloudDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(cloud_data[cindex%noOfWdata].lcl,{'featureProjection':'EPSG:3857'}));
-                    mclCloudDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(cloud_data[cindex%noOfWdata].mcl,{'featureProjection':'EPSG:3857'}));
-                    cclCloudDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(cloud_data[cindex%noOfWdata].ccl,{'featureProjection':'EPSG:3857'}));
+                    lclCloudDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(cloud_data[cindex%4].lcl,{'featureProjection':'EPSG:3857'}));
+                    mclCloudDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(cloud_data[cindex%4].mcl,{'featureProjection':'EPSG:3857'}));
+                    cclCloudDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(cloud_data[cindex%4].ccl,{'featureProjection':'EPSG:3857'}));
 
                     presLowLayer.getSource().clear();
                     presMiddleLayer.getSource().clear();
@@ -562,9 +437,9 @@
                     mcblCloudDataSource.clear();
                     ccblCloudDataSource.clear();
 
-                    lcblCloudDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(cloud_data[cindex%noOfWdata].lcbl,{'featureProjection':'EPSG:3857'}));
-                    mcblCloudDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(cloud_data[cindex%noOfWdata].mcbl,{'featureProjection':'EPSG:3857'}));
-                    ccblCloudDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(cloud_data[cindex%noOfWdata].ccbl,{'featureProjection':'EPSG:3857'}));
+                    lcblCloudDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(cloud_data[cindex%4].lcbl,{'featureProjection':'EPSG:3857'}));
+                    mcblCloudDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(cloud_data[cindex%4].mcbl,{'featureProjection':'EPSG:3857'}));
+                    ccblCloudDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(cloud_data[cindex%4].ccbl,{'featureProjection':'EPSG:3857'}));
 
                     dsw1DataSource.clear();
                     dsw2DataSource.clear();
@@ -580,20 +455,20 @@
                     maxswhsDataSource.clear();
 
 
-                    dsw1DataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(swave_data[cindex%noOfWdata].dsw1,{'featureProjection':'EPSG:3857'}));
-                    dsw2DataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(swave_data[cindex%noOfWdata].dsw2,{'featureProjection':'EPSG:3857'}));
-                    hsw1DataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(swave_data[cindex%noOfWdata].hsw1,{'featureProjection':'EPSG:3857'}));  
-                    hsw2DataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(swave_data[cindex%noOfWdata].hsw2,{'featureProjection':'EPSG:3857'}));
-                    tsw1DataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(swave_data[cindex%noOfWdata].tsw1,{'featureProjection':'EPSG:3857'}));
-                    tsw2DataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(swave_data[cindex%noOfWdata].tsw2,{'featureProjection':'EPSG:3857'}));
-                    whgtDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(swave_data[cindex%noOfWdata].shwws,{'featureProjection':'EPSG:3857'}));
-                    swperDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(swave_data[cindex%noOfWdata].perpws,{'featureProjection':'EPSG:3857'}));
-                    mpwwDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(swave_data[cindex%noOfWdata].mpww,{'featureProjection':'EPSG:3857'}));
-                    dirpwsDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(swave_data[cindex%noOfWdata].dirpws,{'featureProjection':'EPSG:3857'}));
-                    swhsDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(swave_data[cindex%noOfWdata].swhs,{'featureProjection':'EPSG:3857'}));
-                    maxswhsDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(swave_data[cindex%noOfWdata].swhs,{'featureProjection':'EPSG:3857'}));
+                    dsw1DataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(swave_data[cindex%4].dsw1,{'featureProjection':'EPSG:3857'}));
+                    dsw2DataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(swave_data[cindex%4].dsw2,{'featureProjection':'EPSG:3857'}));
+                    hsw1DataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(swave_data[cindex%4].hsw1,{'featureProjection':'EPSG:3857'}));  
+                    hsw2DataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(swave_data[cindex%4].hsw2,{'featureProjection':'EPSG:3857'}));
+                    tsw1DataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(swave_data[cindex%4].tsw1,{'featureProjection':'EPSG:3857'}));
+                    tsw2DataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(swave_data[cindex%4].tsw2,{'featureProjection':'EPSG:3857'}));
+                    whgtDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(swave_data[cindex%4].shwws,{'featureProjection':'EPSG:3857'}));
+                    swperDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(swave_data[cindex%4].perpws,{'featureProjection':'EPSG:3857'}));
+                    mpwwDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(swave_data[cindex%4].mpww,{'featureProjection':'EPSG:3857'}));
+                    dirpwsDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(swave_data[cindex%4].dirpws,{'featureProjection':'EPSG:3857'}));
+                    swhsDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(swave_data[cindex%4].swhs,{'featureProjection':'EPSG:3857'}));
+                    maxswhsDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(swave_data[cindex%4].swhs,{'featureProjection':'EPSG:3857'}));
 
-                    var data = responseRasterData.features[cindex%noOfWdata];
+                    var data = responseRasterData.features[cindex%4];
                     responseWS10mContData = getByName(data,'WS10m');
                     ws10mContDataSource.clear();
                     ws10mContDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(responseWS10mContData,{'featureProjection':'EPSG:3857'}));
@@ -615,19 +490,8 @@
                     apcpContDataSource.clear();
                     apcpContDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(responseAPCPContData,{'featureProjection':'EPSG:3857'}))
 
-		    var dtstr = currentDate.toString();
-		    $("#wdTimeStamp").html(dtstr.substr(0,dtstr.lastIndexOf("GMT")));
-		    currentDate.setHours(currentDate.getHours() + 3);
+
                     cindex=cindex+1;
-
-		    console.log(cindex + " : " + currentDate + ":" +initialDate);		
-		    if(cindex%noOfWdata==0)
-                        {
-                        currentDate = new Date(initialDate);	//toDisplayDate(currentDtm);
-			console.log(currentDate);
-                        }
-
-
                    // console.log(cindex%4);
                     }
                 catch(err)
@@ -845,10 +709,9 @@
                                 <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>Max Height (m)
                             </label>        
                         </div>     
-                        <!--
-			<button id="loadData" type="button" class="btn btn-primary" > Load </button>           
-			<button id="nextData" type="button" class="btn btn-primary" > > </button>                    
-			-->
+                        <button id="loadData" type="button" class="btn btn-primary" > Load </button>                    
+                        <button id="nextData" type="button" class="btn btn-primary" > > </button>                    
+
                       </div>
                     </div>
                   </div>
@@ -904,8 +767,7 @@
 
         <nav>
             <div id="mySideTopnav" class="topnavmenu">
-        	<!--
-	        <div class="row">
+                <div class="row">
                     <div class="col-md-12 col-md-offset-2 text-center">
                         <div class="btn-toolbar" role=toolbar aria-label="Toolbar with button groups"> 
                             <div class="btn-group" role=group aria-label="First group"> 
@@ -940,6 +802,7 @@
                                 <button type=button class="btn btn-default">18</button> 
                                 <button type=button class="btn btn-default">21</button>
                             </div> 
+                            <!--
                             <div class=btn-group role=group aria-label="Third group"> 
                                 <button type=button class="btn btn-default">00</button> 
                                 <button type=button class="btn btn-default">03</button> 
@@ -959,18 +822,10 @@
                                 <button type=button class="btn btn-default">15</button> 
                                 <button type=button class="btn btn-default">18</button> 
                                 <button type=button class="btn btn-default">21</button>
-                            </div>
+                            </div> -->
                         </div>
                     </div>
-                </div> -->
-		<div class="row">
-			<div class="col-md-8 col-md-offset-2 text-center">
-		                <button id="loadData" type="button" class="btn btn-primary btn-sm" > Load </button>
-			    <!--    <button id="prevData" type="button" class="btn btn-primary btn-sm" > < </button> -->
-				<span id="wdTimeStamp" class="label label-info"> Timestamp goes here </span>
-				<button id="nextData" type="button" class="btn btn-primary btn-sm" > > </button>
-			</div>
-		</div>
+                </div>
 <!--            <div class="table-responsive">
                     <table class="table  table-bordered">
                         <tr class="text-center">
@@ -2088,18 +1943,102 @@
                         angle: Math.PI / 6
                         });
 
+ .features[0].getProperties().perpws));
+
+                var twidth = 15;    
+                var ccodes; 
+                ccodes = getColorCodeForWW3(ttsw1);
+
+                if(ttsw1 == 9999 || ttsw1 == 0)
+                    {
+                        ttsw1 = "";
+                    }
+
+                var cStyle = new ol.style.Circle({
+                            fill: new ol.style.Fill({
+                            color: ccodes[0] //'#1b465a',
+                            }),
+                        stroke: new ol.style.Stroke({
+                            color: ccodes[0],
+                            width: 3
+                            }),
+                        radius: ccodes[1]
+                        });
+
                 var cText = new ol.style.Text({
-                        text: thsw2.toString(),
+                        text: ttsw1.toString(),
                         fill: new ol.style.Fill({color: '#000'})
                         });
                 
-                return [new ol.style.Style({image: diamondShape, text : cText})];
+                return [new ol.style.Style({image: cStyle, text : cText})];
 
                 };
 
-            var maxswhsLayerStyleFunction = function(feature)
+            var mpwwLayerStyleFunction = function(feature)
                 {   
-                var thsw2 = Math.ceil(parseFloat(feature.getProperties().features[0].getProperties().swhs)*1.5);
+                var ttsw1 = Math.floor(parseFloat(feature.getProperties().features[0].getProperties().mpww));
+
+                var twidth = 15;    
+                var ccodes; 
+                ccodes = getColorCodeForWW3(ttsw1);
+
+                if(ttsw1 == 9999 || ttsw1 == 0)
+                    {
+                        ttsw1 = "";
+                    }
+
+                var cStyle = new ol.style.Circle({
+                            fill: new ol.style.Fill({
+                            color: ccodes[0] //'#1b465a',
+                            }),
+                        stroke: new ol.style.Stroke({
+                            color: ccodes[0],
+                            width: 3
+                            }),
+                        radius: ccodes[1]
+                        });
+
+                var cText = new ol.style.Text({
+                        text: ttsw1.toString(),
+                        fill: new ol.style.Fill({color: '#000'})
+                        });
+                
+                return [new ol.style.Style({image: cStyle, text : cText})];
+
+                };
+            
+            var dirpwsLayerStyleFunction = function(feature)
+                {
+                var tdsw2 = Math.floor(parseFloat(feature.getProperties().features[0].getProperties().dirpws));
+
+                var twidth = 15;
+
+                var ccodes;
+                var arrowImage;
+                ccodes = getColorCodeForWaveDir(tdsw2);
+
+                if(tdsw2 == 9999)
+                    {
+                        tdsw2 = "";
+                        arrowImage = new ol.style.Icon({
+                //            src: waveArrows[0],
+                //            rotation: 0
+                            });
+                    return [new ol.style.Style({})];                   
+                    }
+                else
+                    {
+                    arrowImage = new ol.style.Icon({
+                            src: ccodes[2],
+                            rotation: tdsw2 * (Math.PI / 180)
+                            });         
+                    }
+                return [new ol.style.Style({image: arrowImage})];           
+                };      
+
+            var swhsLayerStyleFunction = function(feature)
+                {   
+                var thsw2 = Math.ceil(parseFloat(feature.getProperties().features[0].getProperties().swhs));
 
                 var twidth = 15;    
                 var ccodes; 
@@ -2118,518 +2057,4 @@
                         angle: Math.PI / 6
                         });
 
-                var cText = new ol.style.Text({
-                        text: thsw2.toString(),
-                        fill: new ol.style.Fill({color: '#000'})
-                        });
-                
-                return [new ol.style.Style({image: diamondShape, text : cText})];
-
-                };
-
-            var dsw1DataSource = new ol.source.Vector({
-                format: layerDataGeoJSONFormat,
-                projection: 'EPSG:3857',
-                });
-
-            var dsw1ClusterDataSource = new ol.source.Cluster({source : dsw1DataSource});
-
-            var dsw1Layer = new ol.layer.Vector({
-                source: dsw1ClusterDataSource,
-                style: dsw1LayerStyleFunction,
-                layerid: 'dsw1',
-                visible: false
-                });
-
-            var hsw1DataSource = new ol.source.Vector({
-                format: layerDataGeoJSONFormat,
-                projection: 'EPSG:3857',
-                });
-
-            var hsw1ClusterDataSource = new ol.source.Cluster({source : hsw1DataSource});
-
-            var hsw1Layer = new ol.layer.Vector({
-                source: hsw1ClusterDataSource,
-                style: hsw1LayerStyleFunction,
-                layerid: 'hsw1',
-                visible: false
-                });
-
-            var tsw1DataSource = new ol.source.Vector({
-                format: layerDataGeoJSONFormat,
-                projection: 'EPSG:3857',
-                });
-
-            var tsw1ClusterDataSource = new ol.source.Cluster({source : tsw1DataSource});
-
-            var tsw1Layer = new ol.layer.Vector({
-                source: tsw1ClusterDataSource,
-                style: tsw1LayerStyleFunction,
-                layerid: 'tsw1',
-                visible: false
-                });
-
-            var dsw2DataSource = new ol.source.Vector({
-                format: layerDataGeoJSONFormat,
-                projection: 'EPSG:3857',
-                });
-
-            var dsw2ClusterDataSource = new ol.source.Cluster({source : dsw2DataSource});
-
-            var dsw2Layer = new ol.layer.Vector({
-                source: dsw2ClusterDataSource,
-                style: dsw2LayerStyleFunction,
-                layerid: 'dsw2',
-                visible: false
-                });
-
-            var hsw2DataSource = new ol.source.Vector({
-                format: layerDataGeoJSONFormat,
-                projection: 'EPSG:3857',
-                });
-
-            var hsw2ClusterDataSource = new ol.source.Cluster({source : hsw2DataSource});
-
-            var hsw2Layer = new ol.layer.Vector({
-                source: hsw2ClusterDataSource,
-                style: hsw2LayerStyleFunction,
-                layerid: 'hsw2',
-                visible: false
-                });
-
-            var tsw2DataSource = new ol.source.Vector({
-                format: layerDataGeoJSONFormat,
-                projection: 'EPSG:3857',
-                });
-            
-            var tsw2ClusterDataSource = new ol.source.Cluster({source : tsw2DataSource});
-
-            var tsw2Layer = new ol.layer.Vector({
-                source: tsw2ClusterDataSource,
-                style: tsw2LayerStyleFunction,
-                layerid: 'tsw2',
-                visible: false
-                });
-
-            var whgtDataSource = new ol.source.Vector({
-                format: layerDataGeoJSONFormat,
-                projection: 'EPSG:3857',
-                });
-
-            var whgtClusterDataSource = new ol.source.Cluster({source : whgtDataSource});
-
-            var whgtLayer = new ol.layer.Vector({
-                source: whgtClusterDataSource,
-                style: whgtLayerStyleFunction,
-                layerid: 'whgt',
-                visible: false
-                });
-
-            var swperDataSource = new ol.source.Vector({
-                format: layerDataGeoJSONFormat,
-                projection: 'EPSG:3857',
-                });
-
-            var swperClusterDataSource = new ol.source.Cluster({source : swperDataSource});
-
-            var swperLayer = new ol.layer.Vector({
-                source: swperClusterDataSource,
-                style: swperLayerStyleFunction,
-                layerid: 'perpws',
-                visible: false
-                });
-
-            var mpwwDataSource = new ol.source.Vector({
-                format: layerDataGeoJSONFormat,
-                projection: 'EPSG:3857',
-                });
-
-            var mpwwClusterDataSource = new ol.source.Cluster({source : mpwwDataSource});
-
-            var mpwwLayer = new ol.layer.Vector({
-                source: mpwwClusterDataSource,
-                style: mpwwLayerStyleFunction,
-                layerid: 'mpww',
-                visible: false
-                });
-
-            var dirpwsDataSource = new ol.source.Vector({
-                format: layerDataGeoJSONFormat,
-                projection: 'EPSG:3857',
-                });
-
-            var dirpwsClusterDataSource = new ol.source.Cluster({source : dirpwsDataSource});
-
-            var dirpwsLayer = new ol.layer.Vector({
-                source: dirpwsClusterDataSource,
-                style: dirpwsLayerStyleFunction,
-                layerid: 'dirpws',                
-                visible: false
-                });
-
-            var swhsDataSource = new ol.source.Vector({
-                format: layerDataGeoJSONFormat,
-                projection: 'EPSG:3857',
-                });
-
-            var swhsClusterDataSource = new ol.source.Cluster({source : swhsDataSource});
-
-            var swhsLayer = new ol.layer.Vector({
-                source: swhsClusterDataSource,
-                style: swhsLayerStyleFunction,
-                layerid: 'swhs',
-                visible: false
-                });
-
-
-            var maxswhsDataSource = new ol.source.Vector({
-                format: layerDataGeoJSONFormat,
-                projection: 'EPSG:3857',
-                });
-
-            var maxswhsClusterDataSource = new ol.source.Cluster({source : maxswhsDataSource});
-
-            var maxswhsLayer = new ol.layer.Vector({
-                source: maxswhsClusterDataSource,
-                style: maxswhsLayerStyleFunction,
-                layerid: 'maxswhs',
-                visible: false
-                });
-
-            var tmp2mContDataSource = new ol.source.Vector({
-                format: layerDataGeoJSONFormat,
-                projection: 'EPSG:3857',
-                });
-
-            var tmp2mContLayer = new ol.layer.Vector({
-                source: tmp2mContDataSource,
-                style: contLayerStyleFunction,
-                layerid: 'tmp2mCont',
-                opacity: 0.5,
-                visible: false
-                });
-
-            var hmdt2mContDataSource = new ol.source.Vector({
-                format: layerDataGeoJSONFormat,
-                projection: 'EPSG:3857',
-                });
-
-            var hmdt2mContLayer = new ol.layer.Vector({
-                    source: hmdt2mContDataSource,
-                    style: contLayerStyleFunction, 
-                    layerid: 'hmdt2mCont',
-                    opacity: 0.5,
-                    visible: false
-                    });
-
-            var apcpContDataSource = new ol.source.Vector({
-                format: layerDataGeoJSONFormat,
-                projection: 'EPSG:3857',
-                });
-
-            var apcpContLayer = new ol.layer.Vector({
-                    source: apcpContDataSource,
-                    style: contLayerStyleFunction, 
-                    layerid: 'apcpCont',
-                    opacity: 0.5,
-                    visible: false
-                    });
-
-            var pointFeature = new ol.Feature(new ol.geom.Point([0, 0]));
-
-            var siteSelectionVectorLayer = new ol.layer.Vector({
-                source: new ol.source.Vector({
-                    features: []
-                    }),
-                style: new ol.style.Style({
-                    image: new ol.style.Icon(({
-                        src: start_map_pin
-                        }))
-                    })
-                });
-
-            var map = new ol.Map({
-                target: 'map',
-                layers: [
-                        new ol.layer.Tile({
-                        source: new ol.source.OSM()}),
-                        windGustLayer,
-                        wind10mLayer,
-                        wind925mbLayer,
-                        wind975mbLayer,
-                        ws10mContLayer,
-                        tmp2mContLayer,
-                        hmdt2mContLayer,
-                        tcdcLowLayer,
-                        tcdcMiddleLayer,
-                        tcdcConvectiveLayer,
-                        presLowLayer,
-                        presMiddleLayer,
-                        presConvectiveLayer,
-                        apcpContLayer,
-                        dsw1Layer,
-                        dsw2Layer,              
-                        hsw1Layer,
-                        hsw2Layer,
-                        tsw1Layer,
-                        tsw2Layer,
-                        whgtLayer,
-                        swperLayer,
-                        mpwwLayer,
-                        dirpwsLayer,
-                        swhsLayer,
-                        maxswhsLayer,
-                        prContLayer,
-                        siteSelectionVectorLayer
-                    ],
-                view: new ol.View({
-                    center: ol.proj.fromLonLat([37.41, 8.82], 'EPSG:4326', 'EPSG:3857'),
-                    zoom: 4
-                    }),
-
-                });
-
-            $('.leftmenu').on('click', function (e) 
-                {
-                $('.leftmenu').toggleClass("leftmenuexpand");
-                $('.leftnavmenu').toggleClass("leftnavmenuexpand");
-                
-                if($('#layersmenu').hasClass('leftmenu'))
-                    {
-                    $('#layersmenu').html("&#9776");
-                    }
-                if($('#layersmenu').hasClass('leftmenuexpand'))
-                    {
-                    $('#layersmenu').html("&#x2715"); 
-                    }
-                //$('#layersmenu').html($('#layersmenu').text() == "&#x2715" ? "&#9776" : "&#x2715");
-                });
-
-            $('.rightmenu').on('click', function (e) 
-                {
-                $('.rightmenu').toggleClass("rightmenuexpand");
-                $('.rightnavmenu').toggleClass("rightnavmenuexpand");
-
-                if($('#chartsmenu').hasClass('rightmenu'))
-                    {
-                    $('#chartsmenu').html("&#9776");
-                    }
-                if($('#chartsmenu').hasClass('rightmenuexpand'))
-                    {
-                    $('#chartsmenu').html("&#x2715"); 
-                    }
-                });
-
-            $('.bottommenu').on('click', function (e) 
-                {                    
-                $('.bottommenu').toggleClass("bottommenuexpand");
-                $('.bottomnavmenu').toggleClass("bottomnavmenuexpand");
-                if($('#datanavmenu').hasClass('bottommenu'))
-                    {                    
-                    $('#datanavmenu').html("&#9776");                        
-                    }
-                if($('#datanavmenu').hasClass('bottommenuexpand'))
-                    {
-                    $('#datanavmenu').html("&#x2715");                         
-                    }
-                });
-
-            $('.topmenu').on('click', function (e) 
-                {
-                $('.topmenu').toggleClass("topmenuexpand"); 
-                $('.topnavmenu').toggleClass("topnavmenuexpand");                   
-                if($('#legendsmenu').hasClass('topmenu'))
-                    {
-                    $('#legendsmenu').html("&#9776");
-                    }
-                if($('#legendsmenu').hasClass('topmenuexpand'))
-                    {
-                    $('#legendsmenu').html("&#x2715"); 
-                    }
-                });
-
-            $("#windGustVisible").change(
-                function(){
-                map.getLayer('windGust').setVisible($(this).prop("checked"));
-                });
-
-            $("#wind10mVisible").change(
-                function(){
-                    map.getLayer('wind10m').setVisible($(this).prop("checked"));
-                });
-
-            $("#wind925mbVisible").change(
-                function(){
-                    map.getLayer('wind925mb').setVisible($(this).prop("checked"));
-                });     
-
-            $("#wind975mbVisible").change(
-                function(){
-                    map.getLayer('wind975mb').setVisible($(this).prop("checked"));
-                });
-
-            $("#wind10mCPVisible").change(
-                function(){
-                    map.getLayer('ws10mCont').setVisible($(this).prop("checked"));
-                });
-                                            
-            $("#temprature2mCPVisible").change(
-                function(){
-                    map.getLayer('tmp2mCont').setVisible($(this).prop("checked"));
-                });
-
-            $("#humidity2mCPVisible").change(
-                function(){
-                    map.getLayer('hmdt2mCont').setVisible($(this).prop("checked"));
-                });            
-
-            $("#apcpVisible").change(
-                function(){
-                    map.getLayer('apcpCont').setVisible($(this).prop("checked"));
-                });
-
-            $("#pressureMSLILVisible").change(
-                function(){
-                    map.getLayer('prmslCont').setVisible($(this).prop("checked"));
-                });   
-            
-            $("#tcdcLowVisible").change(
-                function(){
-                map.getLayer('tcdcLow').setVisible($(this).prop("checked"));
-                });
-
-            $("#tcdcMiddleVisible").change(
-                function(){
-                map.getLayer('tcdcMiddle').setVisible($(this).prop("checked"));
-                });
-
-            $("#tcdcConvectiveVisible").change(
-                function(){
-                map.getLayer('tcdcConvective').setVisible($(this).prop("checked"));
-                });
-
-            $("#presLowVisible").change(
-                function(){
-                map.getLayer('presLow').setVisible($(this).prop("checked"));
-                });
-
-            $("#presMiddleVisible").change(
-                function(){
-                map.getLayer('presMiddle').setVisible($(this).prop("checked"));
-                });
-
-            $("#presConvectiveVisible").change(
-                function(){
-                map.getLayer('presConvective').setVisible($(this).prop("checked"));
-                });
-
-            $("#dsw1Visible").change(
-                function(){
-                    map.getLayer('dsw1').setVisible($(this).prop("checked"));
-                    });
-
-            $("#dsw2Visible").change(
-                function(){
-                    map.getLayer('dsw2').setVisible($(this).prop("checked"));
-                    });
-
-            $("#hsw1Visible").change(
-                function(){
-                    map.getLayer('hsw1').setVisible($(this).prop("checked"));
-                    });
-
-            $("#hsw2Visible").change(
-                function(){
-                    map.getLayer('hsw2').setVisible($(this).prop("checked"));
-                    });
-
-            $("#tsw1Visible").change(
-                function(){
-                    map.getLayer('tsw1').setVisible($(this).prop("checked"));
-                    });
-
-            $("#tsw2Visible").change(
-                function(){
-                    map.getLayer('tsw2').setVisible($(this).prop("checked"));
-                    });
-
-            $("#swhgtVisible").change(
-                function(){
-                    map.getLayer('whgt').setVisible($(this).prop("checked"));
-                    });
-
-            $("#perpwsVisible").change(
-                function(){
-                    map.getLayer('perpws').setVisible($(this).prop("checked"));
-                    });
-
-            $("#mpwwVisible").change(
-                function(){
-                    map.getLayer('mpww').setVisible($(this).prop("checked"));
-                    });
-
-            $("#dirpwsVisible").change(
-                function(){
-                    map.getLayer('dirpws').setVisible($(this).prop("checked"));
-                    });
-
-            $("#swhsVisible").change(
-                function(){
-                    map.getLayer('swhs').setVisible($(this).prop("checked"));
-                    });
-            $("#maxshwsVisible").change(
-                function(){
-                    map.getLayer('maxswhs').setVisible($(this).prop("checked"));
-                    });
-            var marker = function(obj)
-                    {                    
-                    siteSelectionVectorLayer.getSource().clear();
-                    var coord4326 = ol.proj.transform(obj.coordinate, 'EPSG:3857', 'EPSG:4326');
-//                    console.log(obj.coordinate);       
-//                    console.log(coord4326);             
-                    targetSiteLocation = coord4326;
-                    var  template = '[ {x} | {y} ]',
-                        iconStyle = new ol.style.Style({
-                          image: new ol.style.Icon({
-                            scale: .6,
-                            src: url_marker
-                          }),
-                          text: new ol.style.Text({
-                            offsetY: 25,
-                            text: ol.coordinate.format(coord4326, template, 2),
-                            font: '15px Open Sans,sans-serif',
-                            fill: new ol.style.Fill({ color: '#111' }),
-                            stroke: new ol.style.Stroke({
-                              color: '#eee', width: 2
-                            })
-                          })
-                        }),
-                    feature = new ol.Feature({
-                          type: 'removable',
-                          geometry: new ol.geom.Point(obj.coordinate)
-                        });
-                      
-                      feature.setStyle(iconStyle);
-                      siteSelectionVectorLayer.getSource().addFeature(feature);
-                    };
-
-            var contextmenu_items = [
-                    {
-                      text: 'Set Site Location',
-                      icon: url_marker,
-                      callback: marker
-                    }];
-
-            var contextmenu = new ContextMenu({
-                    width: 190,
-                    default_items: true,
-                    items: contextmenu_items
-                    });
-
-            map.addControl(contextmenu);
-            
-
-
-        </script>
-        {% endblock %}
-
+ 

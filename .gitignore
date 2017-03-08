@@ -1,1 +1,3 @@
 *.pyc
+wgis/mapviewer/*.pyc
+wgis/wgis/*.pyc

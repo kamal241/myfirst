@@ -18,7 +18,7 @@ def get_weather_data(lt1, lt2, ln1, ln2, dt, tm):
 	R2D = 57.2958
 
 #	lt1, lt2, ln1, ln2 = 20,25,335,340
-	tms = [1,4,7,10,13]
+	tms = range(1,25,3)  #[1,4,7,10,13]
 	fhead = "gfs.t%sz.pgrb2.0p25.f" % tm
 #	grbfs =  ["gfs.t%sz.pgrb2.0p25.f001" % tm,"gfs.t%sz.pgrb2.0p25.f004" % tm,"gfs.t%sz.pgrb2.0p25.f007" % tm,"gfs.t%sz.pgrb2.0p25.f010" % tm]
 #	grbfs =  ["gfs.t00z.pgrb2.0p25.f001","gfs.t00z.pgrb2.0p25.f002","gfs.t00z.pgrb2.0p25.f003","gfs.t00z.pgrb2.0p25.f004"]

@@ -16,48 +16,48 @@ def get_swave_data(lt1, lt2, ln1, ln2, t):
 	grib = os.path.join(dls_path,'dls-data','WW3','%s/%s/gwes00.glo_30m.t%02dz.grib2' % (t[:8],t[8:11],int(t[8:11])))	
 	grbs = pygrib.open(grib)
 	grbs.seek(0)
-
+	limit = 8
 	#for msg in grbs[140:180]:
 	#	print dir(msg)
 	#	print msg.shortName, msg#.name, msg.typeOfLevel, msg.level, msg.validDate, msg.messagenumber 
 	shwws = grbs.select(shortName="shww")
-	for shww in shwws[:4]:	
+	for shww in shwws[:limit]:	
 		shww_data, lats, lons = shww.data(lat1=lt1,lat2=lt2,lon1=ln1,lon2=ln2)
 		shwws_all.append(shww_data)
 	shwwd = np.dstack((shwws_all))
 
 	mpwws = grbs.select(shortName="mpww")
-	for mpww in mpwws[:4]:	
+	for mpww in mpwws[:limit]:	
 		mpww_data, lats, lons = mpww.data(lat1=lt1,lat2=lt2,lon1=ln1,lon2=ln2)
 		mpwws_all.append(mpww_data)
 	mpwwd = np.dstack((mpwws_all))
 	
 	dsw1s = grbs.select(shortName="swdir",nameOfFirstFixedSurface="241",level=1)
-	for dsw in dsw1s[:4]:
+	for dsw in dsw1s[:limit]:
 		dsw1_data, lats, lons = dsw.data(lat1=lt1,lat2=lt2,lon1=ln1,lon2=ln2)
 		dsw1_all.append(dsw1_data)
 	dsw1d = np.dstack((dsw1_all))
 	
 	hsw1s = grbs.select(shortName="swell",nameOfFirstFixedSurface="241",level=1)
-	for hsw in hsw1s[:4]:
+	for hsw in hsw1s[:limit]:
 		hsw1_data, lats, lons = hsw.data(lat1=lt1,lat2=lt2,lon1=ln1,lon2=ln2)
 		hsw1_all.append(hsw1_data)
 	hsw1d = np.dstack((hsw1_all))
 
 	tsw1s = grbs.select(shortName="swper",nameOfFirstFixedSurface="241",level=1)
-	for tsw in tsw1s[:4]:
+	for tsw in tsw1s[:limit]:
 		tsw1_data, lats, lons = tsw.data(lat1=lt1,lat2=lt2,lon1=ln1,lon2=ln2)
 		tsw1_all.append(tsw1_data)
 	tsw1d = np.dstack((tsw1_all))
 
 	dsw2s = grbs.select(shortName="swdir",nameOfFirstFixedSurface="241",level=2)
-	for dsw in dsw2s[:4]:
+	for dsw in dsw2s[:limit]:
 		dsw2_data, lats, lons = dsw.data(lat1=lt1,lat2=lt2,lon1=ln1,lon2=ln2)
 		dsw2_all.append(dsw2_data)
 	dsw2d = np.dstack((dsw2_all))
 	
 	hsw2s = grbs.select(shortName="swell",nameOfFirstFixedSurface="241",level=2)
-	for hsw in hsw2s[:4]:
+	for hsw in hsw2s[:limit]:
 		hsw2_data, lats, lons = hsw.data(lat1=lt1,lat2=lt2,lon1=ln1,lon2=ln2)
 		hsw2_all.append(hsw2_data)
 	hsw2d = np.dstack((hsw2_all))
@@ -75,13 +75,13 @@ def get_swave_data(lt1, lt2, ln1, ln2, t):
 	dirpwsd = np.dstack((dirpws_all))
 
 	perpws = grbs.select(shortName="perpw")
-	for perpw in perpws[:4]:	
+	for perpw in perpws[:limit]:	
 		perpws_data, lats, lons = perpw.data(lat1=lt1,lat2=lt2,lon1=ln1,lon2=ln2)
 		perpws_all.append(perpws_data)
 	perpwsd = np.dstack((perpws_all))
 
 	swhs = grbs.select(shortName="swh")
-	for shw in swhs[:4]:	
+	for shw in swhs[:limit]:	
 		swhs_data, lats, lons = shw.data(lat1=lt1,lat2=lt2,lon1=ln1,lon2=ln2)
 		swhs_all.append(swhs_data)	
 	swhsd = np.dstack((swhs_all))

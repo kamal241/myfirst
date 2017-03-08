@@ -10,6 +10,15 @@ body {
 
 /* Header Image Background - Change the URL below to your image path (example: ../images/background.jpg) */
 
+#loadingMessage{ 
+    position: absolute;
+    top:50%;
+    left:50%;
+    background-color:wheat;
+    padding:20px; 
+    z-index:99;
+}
+
 .clsmapcontainer
 	{
 		height:100%;

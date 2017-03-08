@@ -479,7 +479,8 @@ def get_contours(bottom,top,left,right,t,fv):
 #	return prmsl_ws10m_temp2m_geojson_dump
 
 def get_multi_contours(bottom,top,left,right,dtm,fv):
-	tms = [1,4,7,10]
+	tms = range(1,25,3)
+#	tms = [1,4,7,10]
 	features = []
 	for idx,t in enumerate(tms):
 		feature = get_contours(bottom,top,left,right,dtm,t)

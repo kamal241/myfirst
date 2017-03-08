@@ -19,10 +19,10 @@ def weather(request):
 	lt2 = float(request.GET.get('lt2'))
 	ln1 = float(request.GET.get('ln1'))
 	ln2 = float(request.GET.get('ln2'))
-	print dtm
+#	print dtm
 	dt = dtm[:8]
 	tm = dtm[8:]
-	print dt, tm
+#	print dt, tm
 	wjson_data = get_weather_data(lt1, lt2, ln1, ln2, dt, tm)
 	return HttpResponse(wjson_data,content_type='application/json')
 
