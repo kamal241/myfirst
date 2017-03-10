@@ -33,7 +33,9 @@ def get_weather_data(lt1, lt2, ln1, ln2, dt, tm):
 
 	for f in grbfs:
 #		data = pygrib.open('/home/megha/Synergy/aws/dls-prod/dls-data/%s/00/%s' % (dtm, f))
-		data = pygrib.open(os.path.join(dls_path,'dls-data',dt, tm,f))
+#		data = pygrib.open(os.path.join(dls_path,'dls-data',dt, tm,f))
+		grbf = os.path.join(dls_path,'dls-data',dt, tm,f)
+		data=pygrib.index(grbf,'shortName','typeOfLevel','level')
 		t2 = data.select(shortName="2t",typeOfLevel="heightAboveGround",level=2)[0]
 		prmsl = data.select(shortName="prmsl",typeOfLevel="meanSea",level=0)[0]
 		rh = data.select(shortName="r",typeOfLevel="heightAboveGround",level=2)[0]
@@ -50,6 +52,7 @@ def get_weather_data(lt1, lt2, ln1, ln2, dt, tm):
 		u975 = data.select(shortName="u",typeOfLevel="isobaricInhPa",level=975)[0]
 		v975 = data.select(shortName="v",typeOfLevel="isobaricInhPa",level=975)[0]
 
+		data=pygrib.index(grbf,'shortName','nameOfFirstFixedSurface')
 		ccl = data.select(shortName="tcc",nameOfFirstFixedSurface="244")[0]
 		lcl = data.select(shortName="tcc",nameOfFirstFixedSurface="214")[0]
 		mcl = data.select(shortName="tcc",nameOfFirstFixedSurface="224")[0]

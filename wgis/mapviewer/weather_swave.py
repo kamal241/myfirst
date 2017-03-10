@@ -14,8 +14,9 @@ def get_swave_data(lt1, lt2, ln1, ln2, t):
 	dsw2_all, hsw2_all, tsw2_all = [], [], []
 
 	grib = os.path.join(dls_path,'dls-data','WW3','%s/%s/gwes00.glo_30m.t%02dz.grib2' % (t[:8],t[8:11],int(t[8:11])))	
-	grbs = pygrib.open(grib)
-	grbs.seek(0)
+#	grbs = pygrib.open(grib)
+	grbs=pygrib.index(grib,'shortName')
+#	grbs.seek(0)
 	limit = 8
 	#for msg in grbs[140:180]:
 	#	print dir(msg)
@@ -31,7 +32,27 @@ def get_swave_data(lt1, lt2, ln1, ln2, t):
 		mpww_data, lats, lons = mpww.data(lat1=lt1,lat2=lt2,lon1=ln1,lon2=ln2)
 		mpwws_all.append(mpww_data)
 	mpwwd = np.dstack((mpwws_all))
-	
+
+        dirpws = grbs.select(shortName="dirpw")
+        for dirpw in dirpws[:4]:
+                dirpws_data, lats, lons = dirpw.data(lat1=lt1,lat2=lt2,lon1=ln1,lon2=ln2)
+                dirpws_all.append(dirpws_data)
+        dirpwsd = np.dstack((dirpws_all))
+
+        perpws = grbs.select(shortName="perpw")
+        for perpw in perpws[:limit]:
+                perpws_data, lats, lons = perpw.data(lat1=lt1,lat2=lt2,lon1=ln1,lon2=ln2)
+                perpws_all.append(perpws_data)
+        perpwsd = np.dstack((perpws_all))
+
+        swhs = grbs.select(shortName="swh")
+        for shw in swhs[:limit]:
+                swhs_data, lats, lons = shw.data(lat1=lt1,lat2=lt2,lon1=ln1,lon2=ln2)
+                swhs_all.append(swhs_data)
+        swhsd = np.dstack((swhs_all))
+
+	grbs=pygrib.index(grib,'shortName','nameOfFirstFixedSurface','level')	
+
 	dsw1s = grbs.select(shortName="swdir",nameOfFirstFixedSurface="241",level=1)
 	for dsw in dsw1s[:limit]:
 		dsw1_data, lats, lons = dsw.data(lat1=lt1,lat2=lt2,lon1=ln1,lon2=ln2)
@@ -63,28 +84,11 @@ def get_swave_data(lt1, lt2, ln1, ln2, t):
 	hsw2d = np.dstack((hsw2_all))
 
 	tsw2s = grbs.select(shortName="swper",nameOfFirstFixedSurface="241",level=2)
-	for tsw in tsw2s[:4]:
+	for tsw in tsw2s[:limit]:
 		tsw2_data, lats, lons = tsw.data(lat1=lt1,lat2=lt2,lon1=ln1,lon2=ln2)
 		tsw2_all.append(tsw2_data)
 	tsw2d = np.dstack((tsw2_all))
 
-	dirpws = grbs.select(shortName="dirpw")
-	for dirpw in dirpws[:4]:	
-		dirpws_data, lats, lons = dirpw.data(lat1=lt1,lat2=lt2,lon1=ln1,lon2=ln2)
-		dirpws_all.append(dirpws_data)
-	dirpwsd = np.dstack((dirpws_all))
-
-	perpws = grbs.select(shortName="perpw")
-	for perpw in perpws[:limit]:	
-		perpws_data, lats, lons = perpw.data(lat1=lt1,lat2=lt2,lon1=ln1,lon2=ln2)
-		perpws_all.append(perpws_data)
-	perpwsd = np.dstack((perpws_all))
-
-	swhs = grbs.select(shortName="swh")
-	for shw in swhs[:limit]:	
-		swhs_data, lats, lons = shw.data(lat1=lt1,lat2=lt2,lon1=ln1,lon2=ln2)
-		swhs_all.append(swhs_data)	
-	swhsd = np.dstack((swhs_all))
 	
 	"""
 	for shww in shwws:

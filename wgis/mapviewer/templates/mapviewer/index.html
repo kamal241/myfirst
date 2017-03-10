@@ -32,7 +32,7 @@
                     new  SiteLocation("DD",10.5116667,100.286667),
                     new  SiteLocation("DD",4.1023333,103.506500)];
 	var noOfWdata = 8;
-
+	var baseReportURL = "http://ec2-54-254-159-111.ap-southeast-1.compute.amazonaws.com:8000/mapviewer/reports/";
 	function WeatherData(type, desc, datas)
 		{
 		this.type = type;
@@ -55,6 +55,7 @@
 	wddobjs["cloud"] = new WeatherData("CLOUD", "Cloud cover and Cloud base height",["Cloud Cover","Cloud Base Height"]);
 	wddobjs["swave"] = new WeatherData("SWELLSEAWAVE", "Swell and Sea wave",["Swell","Sea Wave"]);
         wddobjs["raster"] = new WeatherData("RASTER", "Temperature, Pressure, Humidity and Precipitation",["Temp","PRES"]);
+	var globaldtm;
 	var currentDate = new Date();
 	var initialDate = new Date();
 	var currentDtm;
@@ -296,6 +297,7 @@
 
             function getTimeStampForData(toff) 
                 {
+		toff=0;
                 var now = new Date();
                 var cdate = new Date(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(),  now.getUTCHours(), now.getUTCMinutes(), now.getUTCSeconds());
 		currentDate = new Date(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(),  now.getUTCHours(), now.getUTCMinutes(), now.getUTCSeconds()); //new Date(cdate.toUTCString());
@@ -485,7 +487,7 @@
                 
                 raster_url = base_url + "weather_raster?lt1=" + lt1 + "&lt2=" + lt2 + "&ln1=" + ln1 + "&ln2=" + ln2 + "&dtm=" + dtm; //"&dtm=2017010600";
 
-                swave_url = base_url + "weather_swave?lt1=" + lt1 + "&lt2=" + lt2 + "&ln1=" + ln1 + "&ln2=" + ln2 + "&dtm=" + "2017030712";
+                swave_url = base_url + "weather_swave?lt1=" + lt1 + "&lt2=" + lt2 + "&ln1=" + ln1 + "&ln2=" + ln2 + "&dtm=" + dtm; //"2017030906"; //dtm;
 
 
 
@@ -522,6 +524,35 @@
 			}
 		
                 });
+
+            $("#genReport").click(
+	            function()
+        	            {
+		            if (targetSiteLocation==undefined)
+                	        {
+	                        alert("Please Set Site Location. Right Click on Map and choose Set Site Location");
+	                        }
+	                    else
+            	                {
+				if(currentDtm==undefined)
+					{
+			alert("Please load data before generating report. To load data click on Load from top panel");
+					}
+				else
+					{
+					var getReqPara = "";  
+	        	                getReqPara = getReqPara + "&lon=" + targetSiteLocation[0]%360;
+	                	        getReqPara = getReqPara + "&lat=" + targetSiteLocation[1];
+					getReqPara = getReqPara + "&dtm=" + currentDtm;
+		                        //alert(baseReportURL + "location?" + getReqPara);
+		                        var siteLocReportURL = baseReportURL + "location?" + getReqPara;
+					console.log(siteLocReportURL);
+	alert("The report will open in new Window/Tab. Do not close new Window/Tab. \n Report generation may take bit longer.\n Kindly be patient");                   
+				        window.open(siteLocReportURL,"_blank");
+	        	                }
+				}
+                	    });
+
 
             $('#nextData').click(function (e) 
                 {
@@ -964,11 +995,12 @@
                     </div>
                 </div> -->
 		<div class="row">
-			<div class="col-md-8 col-md-offset-2 text-center">
-		                <button id="loadData" type="button" class="btn btn-primary btn-sm" > Load </button>
-			    <!--    <button id="prevData" type="button" class="btn btn-primary btn-sm" > < </button> -->
-				<span id="wdTimeStamp" class="label label-info"> Timestamp goes here </span>
-				<button id="nextData" type="button" class="btn btn-primary btn-sm" > > </button>
+			<div class="col-md-8 col-md-offset-2">
+	                <button id="loadData" type="button" class="btn btn-primary btn-sm"> Load </button>
+		    <!--    <button id="prevData" type="button" class="btn btn-primary btn-sm" > < </button> -->
+			<span id="wdTimeStamp" class="label label-info">Timestamp goes here</span>
+			<button id="nextData" type="button" class="btn btn-primary btn-sm" > > </button>
+			<button type="button" class="btn btn-info"  name="genReport" id="genReport" > Generate Report</button>
 			</div>
 		</div>
 <!--            <div class="table-responsive">

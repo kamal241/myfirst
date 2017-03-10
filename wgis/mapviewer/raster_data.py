@@ -25,9 +25,9 @@ def get_pres_msl_contour(left,bottom,top,right,t,fv):
 	grib = os.path.join(dls_path,'dls-data','%s/%s/gfs.t%02dz.pgrb2.0p25.f%03d' % (t[:8],t[8:11],int(t[8:11]),fv))
 	print grib
 
-	grbs = pygrib.open(grib)
-
-	grbs.seek(0)
+#	grbs = pygrib.open(grib)
+	grbs = pygrib.index(grbf,'shortName','typeOfLevel','level')
+#	grbs.seek(0)
 
 #	prmsl = grbs.message(414)	
 
@@ -37,7 +37,7 @@ def get_pres_msl_contour(left,bottom,top,right,t,fv):
 #	uin = grbs.select(name='10 metre U wind component')[0]
 #	vin = grbs.select(name='10 metre V wind component')[0]
 
-	presdata = grbs.select(name='Pressure reduced to MSL',typeOfLevel="meanSea",level=0)
+	presdata = grbs.select(shortName="prmsl",typeOfLevel="meanSea",level=0)
 
 	tgrb = presdata[0]
 
@@ -224,9 +224,10 @@ def get_contours(bottom,top,left,right,t,fv):
 #	grib = '/home/megha/Synergy/gis_project/development/experiments/netcdf/SynergyTestData/GRIB/GFS/20161010/06/gfs.t06z.pgrb2.0p25.f006' 
 #	grib = '/home/megha/Synergy/gis_project/development/experiments/netcdf/SynergyTestData/GRIB/GFS/%s/%s/gfs.t%02dz.pgrb2.0p25.f%03d' % (t[:8],t[8:11],int(t[8:11]),fv)
 	grib = os.path.join(dls_path,'dls-data','%s/%s/gfs.t%02dz.pgrb2.0p25.f%03d' % (t[:8],t[8:11],int(t[8:11]),fv))
-	grbs = pygrib.open(grib)
+	grbs = pygrib.index(grib,'shortName','typeOfLevel','level')
+#	grbs = pygrib.open(grib)
 
-	grbs.seek(0)
+#	grbs.seek(0)
 
 #	print "Processing Wind Parameters"
 ### Wind speed and wind direction	
@@ -301,7 +302,7 @@ def get_contours(bottom,top,left,right,t,fv):
 
 #	print "Processing PRMSL Parameters"
 ### PRMSL Isolines
-	raw_prmsl_data = grbs.select(name='Pressure reduced to MSL',typeOfLevel="meanSea",level=0)
+	raw_prmsl_data = grbs.select(shortName="prmsl",typeOfLevel="meanSea",level=0)
 
 	prmsl_data, lats, lons = raw_prmsl_data[0].data(lat1=lt1,lat2=lt2,lon1=ln1,lon2=ln2)
 	prmsl_data = prmsl_data * 0.01
