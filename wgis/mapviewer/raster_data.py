@@ -12,6 +12,7 @@ from uvunify import uvect, vvect, uvdir
 import geojson
 from geojson import Feature, LineString, Polygon, MultiPolygon,FeatureCollection
 import os
+import pyproj
 
 def get_pres_msl_contour(left,bottom,top,right,t,fv):
 
@@ -19,6 +20,7 @@ def get_pres_msl_contour(left,bottom,top,right,t,fv):
 		dls_path = os.environ['dls_path']
 
 	w,h,dpi,fs=800,600,40,6
+	fig = figure(figsize=(w/dpi,h/dpi))
 	plt.figure(figsize=(w/dpi,h/dpi))
 	
 #	grib = '/home/megha/Synergy/gis_project/development/experiments/netcdf/SynergyTestData/GRIB/GFS/20161010/06/gfs.t06z.pgrb2.0p25.f006' 
@@ -97,7 +99,6 @@ def get_pres_msl_contour(left,bottom,top,right,t,fv):
 #	cswf = map.contourf(x[points],y[points],wspeed[points],cmap=plt.cm.jet, alpha=.5)
 	cb = map.colorbar(location='right', pad="12%")
 	cb.ax.tick_params(labelsize=8)
-	import pyproj
 
 	epsg_3395 = pyproj.Proj(init='epsg:3395')
 	epsg_3857 = pyproj.Proj(init='epsg:3857')

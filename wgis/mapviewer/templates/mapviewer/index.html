@@ -487,7 +487,7 @@
                 
                 raster_url = base_url + "weather_raster?lt1=" + lt1 + "&lt2=" + lt2 + "&ln1=" + ln1 + "&ln2=" + ln2 + "&dtm=" + dtm; //"&dtm=2017010600";
 
-                swave_url = base_url + "weather_swave?lt1=" + lt1 + "&lt2=" + lt2 + "&ln1=" + ln1 + "&ln2=" + ln2 + "&dtm=" + dtm; //"2017030906"; //dtm;
+                swave_url = base_url + "weather_swave?lt1=" + lt1 + "&lt2=" + lt2 + "&ln1=" + ln1 + "&ln2=" + ln2 + "&dtm=" + dtm; //"2017030906";
 
 
 
@@ -515,7 +515,15 @@
                     dataType: 'json',
                     url: swave_url,
                     success: swave_success,
-		    beforesend : addToLoadingInfoQueue(3)
+		    beforesend : addToLoadingInfoQueue(3),
+		    error : function(response)
+			{
+			var mrc = parseInt(dtm.substr(8,2)) - 6;
+			dtm = dtm.substr(0,8) +  (mrc<10?"0"+mrc.toString():mrc.toString());
+swave_url = base_url + "weather_swave?lt1=" + lt1 + "&lt2=" + lt2 + "&ln1=" + ln1 + "&ln2=" + ln2 + "&dtm=" + dtm;
+
+			alert(response.status + "\n" + swave_url);
+			}
                     });
 		}
 		else
@@ -893,7 +901,7 @@
                     </div>
                     <div id="collapseThree" class="panel-collapse collapse">
                       <div class="panel-body">
-                        Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3 wolf moon officia aute, non cupidatat skateboard dolor brunch. Food truck quinoa nesciunt laborum eiusmod. Brunch 3 wolf moon tempor, sunt aliqua put a bird on it squid single-origin coffee nulla assumenda shoreditch et. Nihil anim keffiyeh helvetica, craft beer labore wes anderson cred nesciunt sapiente ea proident. Ad vegan excepteur butcher vice lomo. Leggings occaecat craft beer farm-to-table, raw denim aesthetic synth nesciunt you probably haven't heard of them accusamus labore sustainable VHS.
+		<button type="button" class="btn btn-info"  name="genReport" id="genReport" > Generate Report</button>
                       </div>
                     </div>
                   </div>
@@ -1000,7 +1008,6 @@
 		    <!--    <button id="prevData" type="button" class="btn btn-primary btn-sm" > < </button> -->
 			<span id="wdTimeStamp" class="label label-info">Timestamp goes here</span>
 			<button id="nextData" type="button" class="btn btn-primary btn-sm" > > </button>
-			<button type="button" class="btn btn-info"  name="genReport" id="genReport" > Generate Report</button>
 			</div>
 		</div>
 <!--            <div class="table-responsive">

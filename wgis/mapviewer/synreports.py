@@ -189,8 +189,8 @@ def get_ww3_cdata(swell,seawave):
             if dsw1 == 999:
 #                dsw1=0
                 catstr+="--\n\n\n\n\n"
-#            else:
-#                dsw1=dirnotation[dsw1]
+            else:
+                catstr+=dirnotation[dsw1]+"\n\n\n\n"
 
             if hsw1 == 999:
                 hsw1=0
@@ -200,14 +200,15 @@ def get_ww3_cdata(swell,seawave):
             if dsw2 == 999:
 #                dsw2=0
 		catstr+="--"
-#           else:
-#                dsw2=dirnotation[dsw2]
+            else:
+                catstr+=dirnotation[dsw2]+"\n\n\n\n"
 
             if hsw2 == 999:
                 hsw2=0
             else:
                 hsw2=round(hsw2,1)
 
+	    days.append(catstr)
             sw1h += (round(hsw1,1),)
             sw2h += (round(hsw2,1),)
             ssh += (round(htsgw,1),)
