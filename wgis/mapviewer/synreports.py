@@ -479,7 +479,7 @@ def get_ww3_graph(wvalues,cats,wdirs):
 
     return d
 
-def weather_report_pdf(rloc,dt,tm,dayfcst=2):#dc, weather_history, ww_hs,fname,sw_fname,rloc,dtm=None):
+def weather_report_pdf(rloc,dt,tm,fname,sw_fname,dayfcst=2):#dc, weather_history, ww_hs,fname,sw_fname,rloc,dtm=None):
     # and define a constant
     TABLE_WIDTH = 480 # this you cannot do in rLab which is why I wrote the helper initially
 	
@@ -791,5 +791,21 @@ def weather_report_pdf(rloc,dt,tm,dayfcst=2):#dc, weather_history, ww_hs,fname,s
         doc.add_spacer()
         doc.add(sg_chart)
 
+    print "Report Images"
+    print fname, sw_fname
+
+    doc.add(PageBreak())
+
+    doc.add_spacer()
+
+    doc.add(Paragraph(" MSL Pressure (mb)  & 10m Wind (Knots) %s " % datetime.datetime.strftime(datetime.datetime.strptime(dt+tm,'%Y%m%d%H'),'%d/%m/%Y %H:%M'), styles['ContentTitle']))    
+    iurl ="http://localhost:8000/mapviewer/media/media/images/" + fname    
+    doc.add_image(iurl, 500, 350, reports.CENTER)
+
+    doc.add_spacer()
+
+    doc.add(Paragraph("Significant Wave Height (meter) %s " % datetime.datetime.strftime(datetime.datetime.strptime(dt+tm,'%Y%m%d%H'),'%d/%m/%Y %H:%M'), styles['ContentTitle']))
+    swaveurl ="http://localhost:8000/mapviewer/media/media/images/" + sw_fname    
+    doc.add_image(swaveurl, 475, 350, reports.CENTER)
 
     return doc.renderb()

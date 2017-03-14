@@ -4,6 +4,7 @@ from django.template import loader
 from datetime import date
 from weather_data import *
 from weather_swave import *
+#from django.contrib.gis.geos import Point
 from raster_data import get_pres_msl_contour, get_contours, get_multi_contours
 from generate_cp import get_ws10prmsl, get_swh
 from mapviewer.synreports import *
@@ -58,19 +59,19 @@ def reports_location(request):
         filename = 'Location_Weather_Report_' + today.strftime('%Y-%m-%d')
         response['Content-Disposition'] =  'attachement; filename={0}.pdf'.format(filename)
         t=request.GET['dtm']
+	fv=int(t[8:11])
 #        fv= int(request.GET['fv'])
         lat = float(request.GET['lat'])
         lon = float(request.GET['lon'])
-	"""
+
         rlat, rlon = round(lat*2)/2, round(lon*2)/2
-        target_loc = Point(lon,lat)
-        rtarget_loc = Point(rlon,rlat)
+#        target_loc = Point(lon,lat)
+#        rtarget_loc = Point(rlon,rlat)
 
         ln1,ln2,lt1,lt2 = lon-5,lon+5,lat-5,lat+5
         fname = get_ws10prmsl(ln1,lt1,lt2,ln2,t,fv)
         swhgt_fname = get_swh(ln1,lt1,lt2,ln2,t,fv)
-#       print fpath
-
+	"""
         wsn = SynForecastLocation.objects.filter(lcpt__dwithin=(target_loc,0.1768),wdtid=1)
         twnlcid = wsn[0].lcid
         wwn = SynForecastLocation.objects.filter(lcpt__dwithin=(rtarget_loc,0.1767),wdtid=1)
@@ -97,7 +98,7 @@ def reports_location(request):
 	"""
         dt = t[:8]
         tm = t[8:]
-        wpdf = weather_report_pdf((lon,lat),dt,tm)#"", wndata, wwdata,fname,swhgt_fname,(lon,lat),ftm) 
+        wpdf = weather_report_pdf((lon,lat),dt,tm,fname,swhgt_fname)#"", wndata, wwdata,fname,swhgt_fname,(lon,lat),ftm) 
         if wpdf is None:
                 print "WPDF Error"
         else:

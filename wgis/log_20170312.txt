@@ -1,0 +1,7 @@
+[2017-03-13 04:59:19 +0000] [20704] [INFO] Starting gunicorn 19.7.0
+[2017-03-13 04:59:19 +0000] [20704] [INFO] Listening at: http://127.0.0.1:8001 (20704)
+[2017-03-13 04:59:19 +0000] [20704] [INFO] Using worker: gevent
+[2017-03-13 04:59:19 +0000] [20709] [INFO] Booting worker with pid: 20709
+[2017-03-13 04:59:29 +0000] [20704] [INFO] Handling signal: int
+[2017-03-13 04:59:29 +0000] [20709] [INFO] Worker exiting (pid: 20709)
+[2017-03-13 04:59:29 +0000] [20704] [INFO] Shutting down: Master

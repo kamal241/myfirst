@@ -28,9 +28,27 @@
                 this.lon = lon;
             }
 
+	function getDateFromResponse(obj)
+		{
+		var dt = new Date();
+		var tms = obj.timestamp;
+		var hr = obj.hours;
+		var yr = parseInt(tms.substr(0,4));
+		var mn = parseInt(tms.substr(4,2));
+		var dy = parseInt(tms.substr(6,2));
+		dt.setFullYear(yr);
+		dt.setMonth(parseInt(mn)-1);
+		dt.setDate(dy);
+		dt.setHours(hr);
+		dt.setMinutes(0);
+		dt.setSeconds(0);
+		return dt;
+		}
+
         var sls = [new SiteLocation("DD",-9.642500,9.67083333), 
                     new  SiteLocation("DD",10.5116667,100.286667),
                     new  SiteLocation("DD",4.1023333,103.506500)];
+	var wdatatimestamps;
 	var noOfWdata = 8;
 	var baseReportURL = "http://ec2-54-254-159-111.ap-southeast-1.compute.amazonaws.com:8000/mapviewer/reports/";
 	function WeatherData(type, desc, datas)
@@ -133,6 +151,7 @@
                     wdata = data;
                     wind_data = {};
                     cloud_data = {};
+		    wdatatimestamps = wdata.properties;
 		    var  nof_wdata = wdata.properties.length;
 		    var nit=0;
 			
@@ -487,7 +506,7 @@
                 
                 raster_url = base_url + "weather_raster?lt1=" + lt1 + "&lt2=" + lt2 + "&ln1=" + ln1 + "&ln2=" + ln2 + "&dtm=" + dtm; //"&dtm=2017010600";
 
-                swave_url = base_url + "weather_swave?lt1=" + lt1 + "&lt2=" + lt2 + "&ln1=" + ln1 + "&ln2=" + ln2 + "&dtm=" + dtm; //"2017030906";
+                swave_url = base_url + "weather_swave?lt1=" + lt1 + "&lt2=" + lt2 + "&ln1=" + ln1 + "&ln2=" + ln2 + "&dtm=" + dtm; //"2017030906"; //dtm;
 
 
 
@@ -515,15 +534,7 @@
                     dataType: 'json',
                     url: swave_url,
                     success: swave_success,
-		    beforesend : addToLoadingInfoQueue(3),
-		    error : function(response)
-			{
-			var mrc = parseInt(dtm.substr(8,2)) - 6;
-			dtm = dtm.substr(0,8) +  (mrc<10?"0"+mrc.toString():mrc.toString());
-swave_url = base_url + "weather_swave?lt1=" + lt1 + "&lt2=" + lt2 + "&ln1=" + ln1 + "&ln2=" + ln2 + "&dtm=" + dtm;
-
-			alert(response.status + "\n" + swave_url);
-			}
+		    beforesend : addToLoadingInfoQueue(3)
                     });
 		}
 		else
@@ -566,6 +577,8 @@ swave_url = base_url + "weather_swave?lt1=" + lt1 + "&lt2=" + lt2 + "&ln1=" + ln
                 {
                 try 
                     {
+
+			cindex=cindex+1;
                     wind10mLayer.getSource().clear();
                     windGustLayer.getSource().clear();
                     wind925mbLayer.getSource().clear();
@@ -654,17 +667,20 @@ swave_url = base_url + "weather_swave?lt1=" + lt1 + "&lt2=" + lt2 + "&ln1=" + ln
                     apcpContDataSource.clear();
                     apcpContDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(responseAPCPContData,{'featureProjection':'EPSG:3857'}))
 
+		    var ctms = getDateFromResponse(wdatatimestamps[cindex%noOfWdata]).toString();
+		    $("#wdTimeStamp").html(ctms.substr(0,ctms.lastIndexOf("GMT")));
 		    var dtstr = currentDate.toString();
-		    $("#wdTimeStamp").html(dtstr.substr(0,dtstr.lastIndexOf("GMT")));
+//		    $("#wdTimeStamp").html(dtstr.substr(0,dtstr.lastIndexOf("GMT")));
 		    currentDate.setHours(currentDate.getHours() + 3);
-                    cindex=cindex+1;
+//                    cindex=cindex+1;
 
 		    console.log(cindex + " : " + currentDate + ":" +initialDate);		
 		    if(cindex%noOfWdata==0)
                         {
                         currentDate = new Date(initialDate);	//toDisplayDate(currentDtm);
 			console.log(currentDate);
-                        }
+//                	getDateFromResponse(wdatatimestamps[cindex]);
+		        }
 
 
                    // console.log(cindex%4);
@@ -901,7 +917,7 @@ swave_url = base_url + "weather_swave?lt1=" + lt1 + "&lt2=" + lt2 + "&ln1=" + ln
                     </div>
                     <div id="collapseThree" class="panel-collapse collapse">
                       <div class="panel-body">
-		<button type="button" class="btn btn-info"  name="genReport" id="genReport" > Generate Report</button>
+		<button type="button" class="btn btn-info"  name="genReport" id="genReport" > Location Report</button>
                       </div>
                     </div>
                   </div>
