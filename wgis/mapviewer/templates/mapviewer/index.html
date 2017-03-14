@@ -36,12 +36,14 @@
 		var yr = parseInt(tms.substr(0,4));
 		var mn = parseInt(tms.substr(4,2));
 		var dy = parseInt(tms.substr(6,2));
+		var basehr = parseInt(tms.substr(8,2));
 		dt.setFullYear(yr);
 		dt.setMonth(parseInt(mn)-1);
 		dt.setDate(dy);
 		dt.setHours(hr);
 		dt.setMinutes(0);
 		dt.setSeconds(0);
+		dt.setTime(dt.getTime()+ 3600000);
 		return dt;
 		}
 
