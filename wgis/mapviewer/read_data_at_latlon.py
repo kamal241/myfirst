@@ -110,7 +110,7 @@ def get_ww3_data_at_lat_lon_idx(lon, lat,dt, tm,hrsfcst):
 	return swell_all,seawave_all	
 
 
-def get_gfs_data_at_lat_lon_idx(lat,lon, dt, tm,hrsfcst):
+def get_gfs_data_at_lat_lon_idx(lon,lat, dt, tm,hrsfcst):
 	if os.environ.has_key('dls_path'):
 		dls_path = os.environ['dls_path']
 	hrs = range(3,hrsfcst+1,3)

@@ -43,7 +43,7 @@
 		dt.setHours(hr);
 		dt.setMinutes(0);
 		dt.setSeconds(0);
-		dt.setTime(dt.getTime()+ 3600000);
+		dt.setTime(dt.getTime()+ basehr * 3600000);
 		return dt;
 		}
 
@@ -562,7 +562,12 @@
 				else
 					{
 					var getReqPara = "";  
-	        	                getReqPara = getReqPara + "&lon=" + targetSiteLocation[0]%360;
+		        		var ln = targetSiteLocation[0];
+				        if (ln<0)			
+			                    {
+                        			ln = 360 + (ln % 360);
+			                    }
+	        	                getReqPara = getReqPara + "&lon=" + ln; // targetSiteLocation[0]%360;
 	                	        getReqPara = getReqPara + "&lat=" + targetSiteLocation[1];
 					getReqPara = getReqPara + "&dtm=" + currentDtm;
 		                        //alert(baseReportURL + "location?" + getReqPara);
