@@ -68,7 +68,10 @@ def reports_location(request):
 #        target_loc = Point(lon,lat)
 #        rtarget_loc = Point(rlon,rlat)
 
-        ln1,ln2,lt1,lt2 = lon-5,lon+5,lat-5,lat+5
+	if lon < 5:
+		ln1,ln2,lt1,lt2 = 0,10,lat-5,lat+5
+	else:
+	        ln1,ln2,lt1,lt2 = lon-5,lon+5,lat-5,lat+5
         fname = get_ws10prmsl(ln1,lt1,lt2,ln2,t,fv)
         swhgt_fname = get_swh(ln1,lt1,lt2,ln2,t,fv)
 	"""
