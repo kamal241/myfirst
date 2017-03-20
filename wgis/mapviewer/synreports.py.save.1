@@ -490,19 +490,13 @@ def weather_report_pdf(rloc,dt,tm,fname,sw_fname,hrsofst=0,dayfcst=2):#dc, weath
 
     wind_data = get_gfs_data_at_lat_lon_idx(rloc[0],rloc[1],dt,tm,hrsfcst)
 #    print wind_data[0]
-    """
-    sdt = dt
-    stm = tm
-    if hrsofst>0:
-	    tdt = datetime.datetime.strptime(dt+tm,"%Y%m%d%H")
-	    ttd = datetime.timedelta(hours=-6)
-	    ndt = tdt + ttd
-	    sdt = ndt.strftime("%Y%m%d")
-#    print sdt + "\n"
-	    stm=ndt.strftime("%H")
-#    print stm+"\n"
-    """
-    swell,seawave = get_ww3_data_at_lat_lon_idx(rloc[0],rloc[1],dt,tm,hrsfcst)
+    dt = datetime.datetime.strptime(dt+tm,"%Y%m%d%H")
+    td = datetime.timedelta(hours=-6)
+    ndt = dt + td
+    sdt= ndt.strftime("%Y%m%d")
+    stm =  "02d" % ndt.hour
+    
+    swell,seawave = get_ww3_data_at_lat_lon_idx(rloc[0],rloc[1],sdt,stm,hrsfcst)
 #    print len(wind_data),len(swell),len(seawave)
 #    print "SWELL"
 #    print swell

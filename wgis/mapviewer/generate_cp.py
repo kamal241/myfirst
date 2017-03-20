@@ -75,7 +75,7 @@ def get_ws10prmsl(left,bottom,top,right,t,fv):
 	mvdata = vvect(mwdir)
 
 	## Experiment for black arrow
-	contmap.quiver(x[points],y[points],-mudata[points],-mvdata[points], color='k', scale=24, headlength=6, headwidth=7, pivot='mid')
+	contmap.quiver(x[points],y[points],mudata[points],mvdata[points], color='k', scale=24, headlength=6, headwidth=7, pivot='mid')
 
 #	print "Processing PRMSL Parameters"
 ### PRMSL Isolines
@@ -103,7 +103,7 @@ def get_ws10prmsl(left,bottom,top,right,t,fv):
 #	plt.figure(figsize=(800/dpi,800/dpi))
 #	plt.savefig('/home/megha/Synergy/gis_project/development/synergygis_project/synergygis/media/images/%s.png' % fname, bbox_inches='tight', dpi=dpi)
 
-def get_swh(left,bottom,top,right,t,fv):
+def get_swh(left,bottom,top,right,t,fv,hrsofst=0):
         lt1, lt2, ln1, ln2 = bottom,top,left,right
         w,h,dpi,fs=450,450,60,10
         plt.figure(figsize=(w/dpi,h/dpi))
@@ -128,8 +128,8 @@ def get_swh(left,bottom,top,right,t,fv):
         grbs = pygrib.open(grib)
         grbs.seek(0)
 
-	grb = grbs.select(name='Significant height of wind waves')[0]
-
+	grb = grbs.select(name='Significant height of wind waves')[hrsofst]
+	print grb.validDate
 	data = grb.values
 	lats, lons = grb.latlons()
 
