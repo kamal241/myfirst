@@ -9,6 +9,7 @@ from raster_data import get_pres_msl_contour, get_contours, get_multi_contours
 from generate_cp import get_ws10prmsl, get_swh
 from mapviewer.synreports import *
 import datetime
+import re
 # Create your views here.
 
 def index(request):
@@ -60,7 +61,7 @@ def weather_swave(request):
 		td = datetime.timedelta(hours=-6)
 		ndtm = (dt+td).strftime("%Y%m%d%H")
 		hrsofst = 2
-		location = "http://ec2-54-254-159-111.ap-southeast-1.compute.amazonaws.com:8000/mapviewer/weather_swave?lt1=12.878241020688549&lt2=17.87824102068855&ln1=91.33216857910155&ln2=96.33216857910155&dtm=%s&hrsofst=%d" % (ndtm,hrsofst)
+		location = "http://ec2-54-254-159-111.ap-southeast-1.compute.amazonaws.com:8000/mapviewer/weather_swave?lt1=%f&lt2=%f&ln1=%f&ln2=%f&dtm=%s&hrsofst=%d" % (lt1,lt2,ln1,ln2,ndtm,hrsofst)
 		res = HttpResponse(location,status=302)
 		res['Location'] = location
 		return res
@@ -73,23 +74,24 @@ def reports_location(request):
         fv=int(t[8:11])
 	gfv = fv
         hrsofst = 0
+	lname='Singapore'
         if 'hrsofst' in request.GET.keys():
                 hrsofst = int(request.GET.get('hrsofst'))
 		dt = datetime.datetime.strptime(t,"%Y%m%d%H")
 		td = datetime.timedelta(hours=6)
-		gt = (dt+td).strftime("%Y%m%d%H")				
+ 		gt = (dt+td).strftime("%Y%m%d%H")				
 		gfv = int(gt[8:11])
-#		print t,fv,gt,gfv,hrsofst
+
+        if 'lname' in request.GET.keys():
+                lname = request.GET.get('lname')
+
+	lname = re.sub(r"\s+", '_', lname)
 
        	if os.environ.has_key('dls_path'):
                 dls_path = os.environ['dls_path']
 
 	grib = os.path.join(dls_path,'dls-data','WW3','%s/%s/gwes00.glo_30m.t%02dz.grib2' % (t[:8],t[8:11],int(t[8:11])))
 	if os.path.exists(grib):
-		response = HttpResponse(content_type='application/pdf')
-	        today = date.today()
-	        filename = 'Location_Weather_Report_' + today.strftime('%Y-%m-%d')
-	        response['Content-Disposition'] =  'attachement; filename={0}.pdf'.format(filename)
 	#        fv= int(request.GET['fv'])
 	        rlat, rlon = round(lat*2)/2, round(lon*2)/2
 	#        target_loc = Point(lon,lat)
@@ -103,11 +105,15 @@ def reports_location(request):
 	        swhgt_fname = get_swh(ln1,lt1,lt2,ln2,t,fv,hrsofst)
 	        dt = gt[:8]
 	        tm = gt[8:]
-	        wpdf = weather_report_pdf((lon,lat),dt,tm,fname,swhgt_fname,hrsofst)#"", wndata, wwdata,fname,swhgt_fname,(lon,lat),ftm) 
+	        wpdf = weather_report_pdf((lon,lat),dt,tm,fname,swhgt_fname,hrsofst,lcname=lname)#"", wndata, wwdata,fname,swhgt_fname,(lon,lat),ftm) 
 	        if wpdf is None:
 	                print "WPDF Error"
 	        else:
 	                print "WPDF Success"
+		response = HttpResponse(content_type='application/pdf')
+		rgendt = datetime.datetime.strptime(t,"%Y%m%d%H") + datetime.timedelta(hours=3)
+	        filename = lname + '_Weather_Report_' + rgendt.strftime('%Y-%m-%d_%H-%M')
+	        response['Content-Disposition'] =  'attachement; filename={0}.pdf'.format(filename)
 	        response.write(wpdf)
 	        return response
 	else:
@@ -115,7 +121,7 @@ def reports_location(request):
                 td = datetime.timedelta(hours=-6)
                 ndtm = (dt+td).strftime("%Y%m%d%H")
                 hrsofst = 2
-                location = "http://ec2-54-254-159-111.ap-southeast-1.compute.amazonaws.com:8000/mapviewer/reports/location?&lon=%f&lat=%f&dtm=%s&hrsofst=%d" % (lon,lat,ndtm,hrsofst)
+                location = "http://ec2-54-254-159-111.ap-southeast-1.compute.amazonaws.com:8000/mapviewer/reports/location?&lon=%f&lat=%f&dtm=%s&hrsofst=%d&lname=%s" % (lon,lat,ndtm,hrsofst,lname)
                 res = HttpResponse(location,status=302)
                 res['Location'] = location
                 return res

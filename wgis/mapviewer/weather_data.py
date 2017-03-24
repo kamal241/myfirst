@@ -89,7 +89,7 @@ def get_weather_data(lt1, lt2, ln1, ln2, dt, tm):
 		tmp2m_C_data = t2_data - 273
 
 		ws10m_data = np.sqrt(np.square(u10_data) + np.square(v10_data))
-		wd10m_data = np.arctan2(u10_data,v10_data) * R2D + 180
+		wd10m_data = np.arctan2(u10_data,v10_data) * R2D #+ 180
 
 		tmp2m_all.append(tmp2m_C_data)
 		prmsl_all.append(prmsl_data)
@@ -101,13 +101,13 @@ def get_weather_data(lt1, lt2, ln1, ln2, dt, tm):
 		wd10_all.append(wd10m_data)
 
 		ws925m_data = np.sqrt(np.square(u925_data) + np.square(v925_data))
-		wd925m_data = np.arctan2(u925_data,v925_data) * R2D + 180
+		wd925m_data = np.arctan2(u925_data,v925_data) * R2D #+ 180
 
 		ws925_all.append(ws925m_data * 1.94384)
 		wd925_all.append(wd925m_data)
 
 		ws975m_data = np.sqrt(np.square(u975_data) + np.square(v975_data))
-		wd975m_data = np.arctan2(u975_data,v975_data) * R2D + 180
+		wd975m_data = np.arctan2(u975_data,v975_data) * R2D #+ 180
 		
 		ws975_all.append(ws975m_data * 1.94384)
 		wd975_all.append(wd975m_data)

@@ -17,19 +17,16 @@ def read_latlon2llidx(lat,lon, res,blat=90):
 	lnidx = nlon /res
 	return int(ltidx),int(lnidx)
 
-def get_ww3_data_at_lat_lon_idx(lon, lat,dt, tm,hrsfcst):
+def get_ww3_data_at_lat_lon_idx(lon, lat,dt, tm,hrsfcst,hrsofst):
 	if os.environ.has_key('dls_path'):
 		dls_path = os.environ['dls_path']
 
-	start = int(3/3)
-	limit = int(hrsfcst/3)+1
+	start = int(3/3) + hrsofst
+	limit = int(hrsfcst/3)+1+hrsofst
 	nlat,nlon = read_latlon2llidx(lat,lon,0.5,80)
 	ww3_all = []
 #	print nlat,nlon
-	hrs = range(1,15,3)
 	grib = os.path.join(dls_path,'dls-data','WW3','%s/%s/gwes00.glo_30m.t%02dz.grib2' % (dt,tm,int(tm)))
-	grbsn = pygrib.open(grib)
-	grbsn.seek(0)
 	grbs=pygrib.index(grib,'shortName')	
 
 	shwws = grbs.select(shortName="shww")

@@ -482,3 +482,15 @@ body {
 padding: 5px;
 text-align:center;
 }
+
+.popover{
+  width: 250px;
+}
+
+	        .ol-mouse-position {
+                right: 3em;
+                color: #fff;
+                background-color: rgba(0,0,0,.9);
+                padding: 2px 10px;
+                border-radius: 5px;
+            }

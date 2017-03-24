@@ -6,6 +6,7 @@
     <link href="{% static 'mapviewer/css/full.css' %}" rel="stylesheet" media="screen">
     <link href="{% static 'mapviewer/css/layersnav.css' %}" rel="stylesheet" media="screen">
     <link rel="stylesheet" href="{% static 'mapviewer/css/ol3-contextmenu.min.css' %}">
+   <link rel="stylesheet" href="{% static 'mapviewer/css/olpopup.css' %}">
     
 {% endblock %}
 
@@ -16,8 +17,9 @@
     <script href="{% static 'mapviewer/js/jquery-3.1.0.min.js' %}" type="text/javascript"> </script> -->
     <script href="{% static 'mapviewer/js/mapviewer.js' %}" type="text/javascript"> </script> 
     <script src="{% static 'mapviewer/js/ol3-contextmenu.js' %}" type="text/javascript"></script>
+    <script src="{% static 'mapviewer/js/timefn.js' %}" type="text/javascript"> </script>
     <script  type="text/javascript">
-        function SiteLocation(type,lat,lon)
+        function SiteLocation(type,lat,lon,lname)
             {
                 this.type = type;
                 this.lat = lat;
@@ -26,8 +28,9 @@
                         lon = 360 + (lon % 360);
                     }
                 this.lon = lon;
+		this.locationName = lname;
             }
-
+	var noOfLocations =0;
 	function getDateFromResponse(obj)
 		{
 		var dt = new Date();
@@ -47,9 +50,7 @@
 		return dt;
 		}
 
-        var sls = [new SiteLocation("DD",-9.642500,9.67083333), 
-                    new  SiteLocation("DD",10.5116667,100.286667),
-                    new  SiteLocation("DD",4.1023333,103.506500)];
+        var sls = [];
 	var wdatatimestamps;
 	var noOfWdata = 8;
 	var baseReportURL = "http://ec2-54-254-159-111.ap-southeast-1.compute.amazonaws.com:8000/mapviewer/reports/";
@@ -99,7 +100,7 @@
 
         var url_marker = "{% static 'mapviewer/images/pin_drop.png' %}";
         var start_map_pin = "{% static 'mapviewer/images/map-marker/start_bb2.png' %}";
-
+	var select_map_pin = "{% static 'mapviewer/images/map-marker/start_g1.png' %}";
         var wind_raw = {"gust":{"type": "FeatureCollection","features": []},"wd_10m":{"type": "FeatureCollection","features": []},"ws_10m":{"type": "FeatureCollection","features": []},"wd_925m":{"type": "FeatureCollection","features": []},"ws_925m":{"type": "FeatureCollection","features": []},"wd_975m":{"type": "FeatureCollection","features": []},"ws_975m":{"type": "FeatureCollection","features": []}};
         wind_data[0] = new Object(); //{"gust":{"type": "FeatureCollection","features": []},"wd_10m":{"type": "FeatureCollection","features": []},"ws_10m":{"type": "FeatureCollection","features": []},"wd_925m":{"type": "FeatureCollection","features": []},"ws_925m":{"type": "FeatureCollection","features": []},"wd_975m":{"type": "FeatureCollection","features": []},"ws_975m":{"type": "FeatureCollection","features": []}};
         wind_data[1] = {"gust":{"type": "FeatureCollection","features": []},"wd_10m":{"type": "FeatureCollection","features": []},"ws_10m":{"type": "FeatureCollection","features": []},"wd_925m":{"type": "FeatureCollection","features": []},"ws_925m":{"type": "FeatureCollection","features": []},"wd_975m":{"type": "FeatureCollection","features": []},"ws_975m":{"type": "FeatureCollection","features": []}};
@@ -112,6 +113,7 @@
             {
             var cindex = 0;
 		$("#loadingMessage").hide();
+//		$("#popup").hide();
             if (ol.Map.prototype.getLayer === undefined) 
                 {    
                 ol.Map.prototype.getLayer = function (id) 
@@ -316,73 +318,6 @@
                     */
                     };
 
-            function getTimeStampForData(toff) 
-                {
-		toff=0;
-                var now = new Date();
-                var cdate = new Date(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(),  now.getUTCHours(), now.getUTCMinutes(), now.getUTCSeconds());
-		currentDate = new Date(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(),  now.getUTCHours(), now.getUTCMinutes(), now.getUTCSeconds()); //new Date(cdate.toUTCString());
-		initialDate = new Date(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(),  now.getUTCHours() , now.getUTCMinutes(), now.getUTCSeconds()); //new Date(cdate.toUTCString());
-		currentDate.setHours(currentDate.getHours()+toff);
-		initialDate.setHours(initialDate.getHours()+toff);
-                var tzoffset = cdate.getTimezoneOffset();
-                var fcids = ['00','06','12','18'];
-                var hrs = cdate.getHours();
-		console.log("Hrs " + hrs);
-                var dohrs = hrs - 5;
-		console.log("doHrs " + dohrs);
-                var cday = cdate.getDay();
-                if (dohrs<0)
-                    {
-                    cdate = new Date((new Date).valueOf() - 86350989);
-		    dohrs = 24 + dohrs;
-                    cdate.setHours(dohrs);
-                    }
-                else
-                    {
-                    cdate.setHours(dohrs);
-                    }
-		console.log("idx " + dohrs/6);
-                var didx = fcids[parseInt(dohrs/6)];
-               // var didx = fcids[1];
-		console.log("Hrs " + didx);
-
-                var mnth = cdate.getMonth()+1;
-                var day = cdate.getDate();
-                var dtm = cdate.getFullYear().toString()+(mnth<10?("0" + mnth.toString()):mnth.toString()) +(day<10?("0" + day.toString()):day.toString()) + didx;
-                return dtm;
-                }
-
-            function addLocation(obj)
-                {
-                //console.log(obj);
-                var template = '[ {x} | {y} ]';
-                var iconStyle = new ol.style.Style({
-                    image: new ol.style.Icon({
-                    scale: .6,
-                    src: url_marker
-                    }),
-                    text: new ol.style.Text({
-                    offsetY: 25,
-                //    text: ol.coordinate.format(obj, template, 2),
-                    font: '15px Open Sans,sans-serif',
-                    fill: new ol.style.Fill({ color: '#111' }),
-                    stroke: new ol.style.Stroke({
-                      color: '#eee', width: 2
-                    })
-                    })
-                    });
-                var feature = new ol.Feature({
-                      type: 'removable',
-                      geometry: new ol.geom.Point(obj)
-                    });
-                      
-                feature.setStyle(iconStyle);
-                siteSelectionVectorLayer.getSource().clear();
-                siteSelectionVectorLayer.getSource().addFeature(feature);
-                map.getView().setCenter(obj);
-
-                }
 
             $('#location1').click(function (e) 
                 {
@@ -456,26 +391,6 @@
 		return currentDate;
 		}
 
-	function getTZOffset(ln)  
-		{    
-		var lnf=0;var lnr=0;var nln =0;
-		lnf = parseInt(ln/180); 
-		lnr = 0;    
-		var tzoffset=0;    
-		if(lnf==1)
-		    	{
-		      	nln=360-ln;     
-		      	lnr=-1;     
-		     	tzoffset=lnr * parseInt(nln/15);
-		    	}    
-		if(lnf==0)     
-			{     
-		      	nln=ln;     
-		      	lnr=1;     
-		      	tzoffset=lnr * parseInt(nln/15);
-			} 
-		   return tzoffset;  
-		}
 
 
 
@@ -570,6 +485,7 @@
 	        	                getReqPara = getReqPara + "&lon=" + ln; // targetSiteLocation[0]%360;
 	                	        getReqPara = getReqPara + "&lat=" + targetSiteLocation[1];
 					getReqPara = getReqPara + "&dtm=" + currentDtm;
+					getReqPara = getReqPara + "&lname=" + sls[currentLocationIndex].locationName;
 		                        //alert(baseReportURL + "location?" + getReqPara);
 		                        var siteLocReportURL = baseReportURL + "location?" + getReqPara;
 					console.log(siteLocReportURL);
@@ -578,6 +494,126 @@
 	        	                }
 				}
                 	    });
+            $('#prevData').click(function (e) 
+                {
+                try 
+                    {
+		    if(cindex==0)
+			cindex = noOfWdata;
+		    cindex=cindex-1;
+                    wind10mLayer.getSource().clear();
+                    windGustLayer.getSource().clear();
+                    wind925mbLayer.getSource().clear();
+                    wind975mbLayer.getSource().clear();
+
+                    windDataSource.clear();
+                    gustDataSource.clear();
+                    wind925DataSource.clear();
+                    wind975DataSource.clear();
+
+                    windDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(wind_data[cindex%noOfWdata].wd_10m,{'featureProjection':'EPSG:3857'}));
+                    gustDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(wind_data[cindex%noOfWdata].gust,{'featureProjection':'EPSG:3857'}));           
+                    wind925DataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(wind_data[cindex%noOfWdata].wd_925m,{'featureProjection':'EPSG:3857'}));
+                    wind975DataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(wind_data[cindex%noOfWdata].wd_975m,{'featureProjection':'EPSG:3857'}));
+
+                    tcdcLowLayer.getSource().clear();
+                    tcdcMiddleLayer.getSource().clear();
+                    tcdcConvectiveLayer.getSource().clear();
+
+                    lclCloudDataSource.clear();
+                    mclCloudDataSource.clear();
+                    cclCloudDataSource.clear();
+
+                    lclCloudDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(cloud_data[cindex%noOfWdata].lcl,{'featureProjection':'EPSG:3857'}));
+                    mclCloudDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(cloud_data[cindex%noOfWdata].mcl,{'featureProjection':'EPSG:3857'}));
+                    cclCloudDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(cloud_data[cindex%noOfWdata].ccl,{'featureProjection':'EPSG:3857'}));
+
+                    presLowLayer.getSource().clear();
+                    presMiddleLayer.getSource().clear();
+                    presConvectiveLayer.getSource().clear();
+
+                    lcblCloudDataSource.clear();
+                    mcblCloudDataSource.clear();
+                    ccblCloudDataSource.clear();
+
+                    lcblCloudDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(cloud_data[cindex%noOfWdata].lcbl,{'featureProjection':'EPSG:3857'}));
+                    mcblCloudDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(cloud_data[cindex%noOfWdata].mcbl,{'featureProjection':'EPSG:3857'}));
+                    ccblCloudDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(cloud_data[cindex%noOfWdata].ccbl,{'featureProjection':'EPSG:3857'}));
+
+                    dsw1DataSource.clear();
+                    dsw2DataSource.clear();
+                    hsw1DataSource.clear();
+                    hsw2DataSource.clear();
+                    tsw1DataSource.clear();
+                    tsw2DataSource.clear();
+                    whgtDataSource.clear();
+                    swperDataSource.clear();
+                    mpwwDataSource.clear();
+                    dirpwsDataSource.clear();
+                    swhsDataSource.clear();
+                    maxswhsDataSource.clear();
+
+
+                    dsw1DataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(swave_data[cindex%noOfWdata].dsw1,{'featureProjection':'EPSG:3857'}));
+                    dsw2DataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(swave_data[cindex%noOfWdata].dsw2,{'featureProjection':'EPSG:3857'}));
+                    hsw1DataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(swave_data[cindex%noOfWdata].hsw1,{'featureProjection':'EPSG:3857'}));  
+                    hsw2DataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(swave_data[cindex%noOfWdata].hsw2,{'featureProjection':'EPSG:3857'}));
+                    tsw1DataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(swave_data[cindex%noOfWdata].tsw1,{'featureProjection':'EPSG:3857'}));
+                    tsw2DataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(swave_data[cindex%noOfWdata].tsw2,{'featureProjection':'EPSG:3857'}));
+                    whgtDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(swave_data[cindex%noOfWdata].shwws,{'featureProjection':'EPSG:3857'}));
+                    swperDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(swave_data[cindex%noOfWdata].perpws,{'featureProjection':'EPSG:3857'}));
+                    mpwwDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(swave_data[cindex%noOfWdata].mpww,{'featureProjection':'EPSG:3857'}));
+                    dirpwsDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(swave_data[cindex%noOfWdata].dirpws,{'featureProjection':'EPSG:3857'}));
+                    swhsDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(swave_data[cindex%noOfWdata].swhs,{'featureProjection':'EPSG:3857'}));
+                    maxswhsDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(swave_data[cindex%noOfWdata].swhs,{'featureProjection':'EPSG:3857'}));
+
+                    var data = responseRasterData.features[cindex%noOfWdata];
+                    responseWS10mContData = getByName(data,'WS10m');
+                    ws10mContDataSource.clear();
+                    ws10mContDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(responseWS10mContData,{'featureProjection':'EPSG:3857'}));
+                            
+                        
+                    responsePRMSLContData = getByName(data,'PRMSL');
+                    prContDataSource.clear();
+                    prContDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(responsePRMSLContData,{'featureProjection':'EPSG:3857'}));
+                            
+                    responseTMP2mContData = getByName(data,'TMP2m');
+                    tmp2mContDataSource.clear();
+                    tmp2mContDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(responseTMP2mContData,{'featureProjection':'EPSG:3857'}));
+                            
+                    responseHMDT2mContData = getByName(data,'HMDT2m');
+                    hmdt2mContDataSource.clear();
+                    hmdt2mContDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(responseHMDT2mContData,{'featureProjection':'EPSG:3857'}));
+                    
+                    responseAPCPContData = getByName(data,'APCP');
+                    apcpContDataSource.clear();
+                    apcpContDataSource.addFeatures(layerDataGeoJSONFormat.readFeatures(responseAPCPContData,{'featureProjection':'EPSG:3857'}))
+
+		    var ctms = getDateFromResponse(wdatatimestamps[cindex%noOfWdata]).toString();
+		    $("#wdTimeStamp").html(ctms.substr(0,ctms.lastIndexOf("GMT")));
+		    var dtstr = currentDate.toString();
+//		    $("#wdTimeStamp").html(dtstr.substr(0,dtstr.lastIndexOf("GMT")));
+		    currentDate.setHours(currentDate.getHours() + 3);
+//                    cindex=cindex+1;
+
+		    console.log(cindex + " : " + currentDate + ":" +initialDate);		
+		    if(cindex%noOfWdata==0)
+                        {
+                        currentDate = new Date(initialDate);	//toDisplayDate(currentDtm);
+			console.log(currentDate);
+//                	getDateFromResponse(wdatatimestamps[cindex]);
+		        }
+
+
+                   // console.log(cindex%4);
+                    }
+                catch(err)
+                    {
+                    console.log(err.message);
+                    cindex=cindex-1;
+                    }
+                });
+
 
 
             $('#nextData').click(function (e) 
@@ -725,7 +761,8 @@
                       </h1>
                     </div>
                     <div id="collapseOne" class="panel-collapse collapse">
-                      <div class="panel-body btn-group" role="group">
+                      <!--
+		      <div class="panel-body btn-group" role="group">
                         <span class="glyphicon glyphicon-map-marker btn-lg"></span>
                         <button id="location1" type="button" class="btn btn-default" >
                             09° 38’ 33” S / 09° 40’ 15” E
@@ -740,7 +777,9 @@
                         <button id="location3" type="button" class="btn btn-default" >
                             04° 06.140' N / 103° 30.390' E
                         </button>
-                      </div>
+                      </div> -->
+			<div class="panel-body btn-group-vertical btn-block" id="locations" role="group" >
+			</div>
                     </div>
                   </div>
                   <div class="panel panel-default">
@@ -1028,7 +1067,7 @@
 		<div class="row">
 			<div class="col-md-8 col-md-offset-2">
 	                <button id="loadData" type="button" class="btn btn-primary btn-sm"> Load </button>
-		    <!--    <button id="prevData" type="button" class="btn btn-primary btn-sm" > < </button> -->
+		       <button id="prevData" type="button" class="btn btn-primary btn-sm" > < </button>
 			<span id="wdTimeStamp" class="label label-info">Timestamp goes here</span>
 			<button id="nextData" type="button" class="btn btn-primary btn-sm" > > </button>
 			</div>
@@ -1193,6 +1232,21 @@
             </div>
         </nav>
 	<div id="loadingMessage">This is Just Testing :)</div>
+	<div id="popup" class="ol-popup">
+		<a href="#" id="popup-closer" class="ol-popup-closer"></a>
+		<div id="popup-content">
+		    <div class="input-group">
+		      <input type="text" id="ipLocationName" class="form-control" placeholder="Location Name">
+			<span class="input-group-btn">
+				<button id="saveLocationName" class="btn btn-default" type="button">
+				 <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
+				</button>
+			</span>
+		    </div><!-- /input-group -->
+		</div>
+	</div>
+
+
 {% endblock %}
 
         {% block conten_js %}
@@ -1200,7 +1254,7 @@
         <script type="text/javascript">
 
             var targetSiteLocation;
-
+	    var currentLocationIndex = -1;
             var layerDataGeoJSONFormat = new ol.format.GeoJSON();
 
             var windDataSource = new ol.source.Vector({
@@ -1229,6 +1283,61 @@
             var wind975ClusterDataSource = new ol.source.Cluster({source : wind975DataSource});
 
             var gustClusterDataSource = new ol.source.Cluster({source : gustDataSource});
+
+	function addLocation(obj,sid)
+		{
+		tmp2mContDataSource.clear();
+		prContDataSource.clear();
+		hmdt2mContDataSource.clear();
+		apcpContDataSource.clear();
+		ws10mContDataSource.clear();
+
+		lclCloudDataSource.clear();
+		lcblCloudDataSource.clear();
+
+		mclCloudDataSource.clear();
+		mcblCloudDataSource.clear();
+
+		cclCloudDataSource.clear();
+		ccblCloudDataSource.clear();
+
+		windDataSource.clear();
+		wind925DataSource.clear();
+		wind975DataSource.clear();
+		gustDataSource.clear();
+
+	    var template = '[ {x} | {y} ]';
+	    var iconStyle = new ol.style.Style({
+	        image: new ol.style.Icon({
+	        scale: .6,
+	        src: url_marker
+	        }),
+	        text: new ol.style.Text({
+	        offsetY: 40,
+	        text: sls[currentLocationIndex].locationName +"\n"+ ol.coordinate.toStringHDMS(targetSiteLocation), //ol.coordinate.format(obj, template, 2),
+	        font: '15px Open Sans,sans-serif',
+	        fill: new ol.style.Fill({ color: '#111' }),
+	        stroke: new ol.style.Stroke({
+	    color: '#eee', width: 2
+	        })
+	        })
+	        });
+	    var feature = new ol.Feature({
+	          type: 'removable',
+	          geometry: new ol.geom.Point(obj),
+		  id:sid
+	        });
+	          
+    feature.setStyle(iconStyle);
+    console.log("SID : "+sid);
+    feature.setId(sid);
+    siteSelectionVectorLayer.getSource().clear();
+    siteSelectionVectorLayer.getSource().addFeature(feature);
+    map.getView().setCenter(obj);
+
+}
+
+
 
             function getColorCodeForWindSpeed(tws)
                 {
@@ -1309,7 +1418,6 @@
                 {
                 
                 var twdr10m = Math.floor(parseFloat(feature.getProperties().features[0].getProperties().wd_10m));
-
                
                 var arrowImage = new ol.style.Icon({
                         src: windArrows[3],  //"{% static 'synergymapviewer/images/arrows/gt_ar_24.png' %}",
@@ -1842,7 +1950,7 @@
                     {
                     arrowImage = new ol.style.Icon({
                             src: ccodes[2],
-                            rotation: tdsw1 * (Math.PI / 180)
+                            rotation: (tdsw1 + 180) * (Math.PI / 180)
                             });         
                     }
                 return [new ol.style.Style({image: arrowImage})];
@@ -1872,7 +1980,7 @@
                     {
                     arrowImage = new ol.style.Icon({
                             src: ccodes[2],
-                            rotation: tdsw2 * (Math.PI / 180)
+                            rotation: (tdsw2 + 180) * (Math.PI / 180)
                             });         
                     }
                 return [new ol.style.Style({image: arrowImage})];           
@@ -1880,13 +1988,13 @@
 
             var hsw1LayerStyleFunction = function(feature)
                 {   
-                var thsw1 = Math.ceil(parseFloat(feature.getProperties().features[0].getProperties().hsw1));
-
+                //var thsw1 = Math.ceil(parseFloat(feature.getProperties().features[0].getProperties().hsw1));
+		var thsw1 = parseFloat(feature.getProperties().features[0].getProperties().hsw1).toFixed(1);
                 var twidth = 15;    
                 var ccodes; 
                 ccodes = getColorCodeForWW3(thsw1);
 
-                if(thsw1 == 9999 || thsw1 == 0)
+                if(thsw1 == 9999.0 || thsw1 == 0.0)
                     {
                         thsw1 = "";
                     }
@@ -1916,10 +2024,14 @@
                 var ccodes; 
                 ccodes = getColorCodeForWW3(thsw2);
 
-                if(thsw2 = 9999 || thsw2 == 0)
+                if(thsw2 == 9999)// || thsw2 == 0)
                     {
                         thsw2 = "";
                     }
+		else
+		    {
+		    thsw2 = parseFloat(feature.getProperties().features[0].getProperties().hsw2).toFixed(1);
+		    }
 
                 var diamondShape = new ol.style.RegularShape({
                         fill: new ol.style.Fill({color: ccodes[0]}),
@@ -2006,16 +2118,20 @@
 
             var whgtLayerStyleFunction = function(feature)
                 {   
+//                var thsw2 = Math.ceil(parseFloat(feature.getProperties().features[0].getProperties().shwws));
                 var thsw2 = Math.ceil(parseFloat(feature.getProperties().features[0].getProperties().shwws));
-
                 var twidth = 15;    
                 var ccodes; 
                 ccodes = getColorCodeForWW3(thsw2);
 
-                if(thsw2 = 9999 || thsw2 == 0)
+                if(thsw2 == 9999)// || thsw2 == 0)
                     {
                         thsw2 = "";
                     }
+		else
+			{
+			thsw2 = parseFloat(feature.getProperties().features[0].getProperties().shwws).toFixed(1);
+			}
 
                 var diamondShape = new ol.style.RegularShape({
                         fill: new ol.style.Fill({color: ccodes[0]}),
@@ -2069,16 +2185,21 @@
 
             var mpwwLayerStyleFunction = function(feature)
                 {   
-                var ttsw1 = Math.floor(parseFloat(feature.getProperties().features[0].getProperties().mpww));
+                var ttsw1 = parseFloat(feature.getProperties().features[0].getProperties().mpww);
+//                var ttsw1 = Math.floor(parseFloat(feature.getProperties().features[0].getProperties().mpww));
 
                 var twidth = 15;    
                 var ccodes; 
                 ccodes = getColorCodeForWW3(ttsw1);
 
-                if(ttsw1 == 9999 || ttsw1 == 0)
+                if(ttsw1 == 9999)// || ttsw1 == 0)
                     {
                         ttsw1 = "";
                     }
+		else
+			{
+			ttsw1 = ttsw1.toFixed(1);
+			}
 
                 var cStyle = new ol.style.Circle({
                             fill: new ol.style.Fill({
@@ -2123,7 +2244,7 @@
                     {
                     arrowImage = new ol.style.Icon({
                             src: ccodes[2],
-                            rotation: tdsw2 * (Math.PI / 180)
+                            rotation: (tdsw2+180) * (Math.PI / 180)
                             });         
                     }
                 return [new ol.style.Style({image: arrowImage})];           
@@ -2131,17 +2252,16 @@
 
             var swhsLayerStyleFunction = function(feature)
                 {   
-                var thsw2 = Math.ceil(parseFloat(feature.getProperties().features[0].getProperties().swhs));
-
+//                var thsw2 = Math.ceil(parseFloat(feature.getProperties().features[0].getProperties().swhs));
+                var thsw2 = parseFloat(feature.getProperties().features[0].getProperties().swhs).toFixed(1);
                 var twidth = 15;    
                 var ccodes; 
                 ccodes = getColorCodeForWW3(thsw2);
 
-                if(thsw2 = 9999 || thsw2 == 0)
+                if(thsw2 == 9999.0 || thsw2 == 0.0)
                     {
                         thsw2 = "";
                     }
-
                 var diamondShape = new ol.style.RegularShape({
                         fill: new ol.style.Fill({color: ccodes[0]}),
                         stroke: new ol.style.Stroke({color: ccodes[0] ,width: 1}),
@@ -2161,17 +2281,20 @@
 
             var maxswhsLayerStyleFunction = function(feature)
                 {   
-                var thsw2 = Math.ceil(parseFloat(feature.getProperties().features[0].getProperties().swhs)*1.5);
+                var thsw2 = parseFloat(feature.getProperties().features[0].getProperties().swhs).toFixed(1);
 
                 var twidth = 15;    
                 var ccodes; 
                 ccodes = getColorCodeForWW3(thsw2);
 
-                if(thsw2 = 9999 || thsw2 == 0)
+                if(thsw2 == 9999.0 || thsw2 == 0.0)
                     {
                         thsw2 = "";
                     }
-
+		else
+		    {			
+    		    thsw2 = (thsw2*1.5).toFixed(1);
+		    }
                 var diamondShape = new ol.style.RegularShape({
                         fill: new ol.style.Fill({color: ccodes[0]}),
                         stroke: new ol.style.Stroke({color: ccodes[0] ,width: 1}),
@@ -2407,8 +2530,72 @@
                     image: new ol.style.Icon(({
                         src: start_map_pin
                         }))
-                    })
+                    }),
+		layerid: 'ssvector'
                 });
+
+	    var selectLocationStyle = new ol.style.Style({
+                    image: new ol.style.Icon(({
+                        src: select_map_pin
+                        }))
+                    });
+
+
+	    var selectInteraction = new ol.interaction.Select();
+	
+	    selectInteraction.on('select', function(evt){
+		    var selected = evt.selected;
+		    var deselected = evt.deselected;
+		    
+		    if (selected.length) {
+		        selected.forEach(function(feature){
+//			console.log(feature.getGeometry().getCoordinates());
+                        var coordinate = feature.getGeometry().getCoordinates();
+                        var coord4326 = ol.proj.transform(coordinate, 'EPSG:3857', 'EPSG:4326');
+                        //alert(coord4326);
+                        overlay.setPosition(coordinate);
+//		            feature.setStyle(selectLocationStyle);
+		        });
+		    } else {
+		        deselected.forEach(function(feature){
+//		            feature.setStyle(null);
+		        });
+		    }
+		});
+
+	
+
+	/**
+	 * Elements that make up the popup.
+	 */
+	var container = document.getElementById('popup');
+	var content = document.getElementById('popup-content');
+	var closer = document.getElementById('popup-closer');
+	
+
+/**
+ * Add a click handler to hide the popup.
+ * @return {boolean} Don't follow the href.
+ */
+closer.onclick = function() {
+  overlay.setPosition(undefined);
+  closer.blur();
+  return false;
+};
+
+
+/**
+ * Create an overlay to anchor the popup to the map.
+ */
+var overlay = new ol.Overlay({
+  element: container,
+  autoPan: true,
+  autoPanAnimation: {
+    duration: 250
+  }
+});
+
+
 
             var map = new ol.Map({
                 target: 'map',
@@ -2444,12 +2631,46 @@
                         prContLayer,
                         siteSelectionVectorLayer
                     ],
+		overlays: [overlay],
                 view: new ol.View({
                     center: ol.proj.fromLonLat([37.41, 8.82], 'EPSG:4326', 'EPSG:3857'),
                     zoom: 4
                     }),
 
                 });
+
+		map.addControl(new ol.control.MousePosition({
+			coordinateFormat: function(coordinate) {
+				var coord4326 = ol.proj.transform(coordinate, 'EPSG:3857', 'EPSG:4326');
+				var dispCoord = [coord4326[0]%360, coord4326[1]];
+				dispCoord = ol.coordinate.toStringHDMS(coord4326);
+				return  dispCoord; //ol.coordinate.format(dispCoord, '{x}\', {y}\'', 6);
+				}
+			}));
+
+		var cursorHoverStyle = "pointer";
+		var target = map.getTarget();
+/*
+		//target returned might be the DOM element or the ID of this element dependeing on how the map was initialized
+		//either way get a jQuery object for it
+		var jTarget = typeof target === "string" ? $("#"+target) : $(target);
+	
+		map.on("pointermove", function (event) {
+		    var mouseCoordInMapPixels = [event.originalEvent.offsetX, event.originalEvent.offsetY];
+		
+		    //detect feature at mouse coords
+		    var hit = map.forEachFeatureAtPixel(mouseCoordInMapPixels, function (feature, layer) {
+		        return true;
+		    });
+	
+		if (hit) {
+		        jTarget.css("cursor", cursorHoverStyle);
+		    } else {
+		        jTarget.css("cursor", "");
+		    }
+		});
+*/
+//	    map.addInteraction(selectInteraction);
 
             $('.leftmenu').on('click', function (e) 
                 {
@@ -2643,6 +2864,60 @@
                 function(){
                     map.getLayer('maxswhs').setVisible($(this).prop("checked"));
                     });
+
+		$('#collapseOne').on('click', '#locations  button', function (e) {
+			$(this).addClass('active');
+			$(this).siblings().removeClass('active');
+			var selID = parseInt($(this).val());
+			currentLocationIndex = selID;
+			targetSiteLocation = [sls[selID].lon, sls[selID].lat];	
+			var coord3857 = ol.proj.transform(targetSiteLocation, 'EPSG:4326', 'EPSG:3857');
+			//alert("Setting Location to " + sls[selID].locationName + targetSiteLocation);
+	                addLocation(coord3857,selID);	
+			var tzo = getTZOffset(sls[selID].lon);
+	                var dtm = getTimeStampForData(tzo);
+        	        currentDtm = dtm;
+			});
+
+	    $("#saveLocationName").click(function(e)
+		{
+		var lname = $("#ipLocationName").val();
+                $("#ipLocationName").val("");
+		$("#popup-closer").trigger("click");
+		sls[currentLocationIndex].locationName = lname;
+//                $("#locations").append('<button type="button" value='+ currentLocationIndex +' id="'+ currentLocationIndex+'" class="btn btn-info">'+lname+'[ '+ol.coordinate.toStringHDMS(targetSiteLocation) +' ]</button><span class="divider"></span>');
+//                var nl = new SiteLocation("DD",targetSiteLocation[1],targetSiteLocation[0],lname);
+//                sls.push(nl);
+		});
+
+            $("#ipLocationName").keyup(function(e){
+		if(e.keyCode == 13)
+		    {
+		    var lname = $("#ipLocationName").val();
+		    $("#ipLocationName").val("");
+                //    alert("Location Name : " + $("#ipLocationName").val());
+		    $("#popup-closer").trigger("click");
+                    var coord4326 = [sls[currentLocationIndex].lon,sls[currentLocationIndex].lat];
+                    var btnTitle = lname + " [ " +ol.coordinate.toStringHDMS(coord4326) +" ]";
+		    var olText = $('#locations #'+currentLocationIndex).html();
+		    $('#locations #'+currentLocationIndex).html(btnTitle);
+//		    $("#locations").append('<button type="button" value='+ currentLocationIndex +' id="'+ currentLocationIndex +'" class="btn btn-info">'+lname+' [ '+ol.coordinate.toStringHDMS(targetSiteLocation) +' ]</button><span class="divider"></span>');
+//		    console.log(currentLocationIndex);
+		    sls[currentLocationIndex].locationName = lname;
+		    var ssv = map.getLayer('ssvector');
+		    var olstyle = ssv.getSource().getFeatures()[0].getStyle();
+		    olstyle.getText().setText(lname+"\n["+ol.coordinate.toStringHDMS(coord4326)+"]");
+		    ssv.getSource().getFeatures()[0].setStyle(olstyle);
+//		    var nl = new SiteLocation("DD",targetSiteLocation[1],targetSiteLocation[0],lname);
+//		    sls.push(nl);
+                    }
+		if(e.keyCode == 27)
+                    {
+                	$("#popup-closer").trigger("click");
+//		    alert("Location Name Not Set " + $("#ipLocationName").val());
+                    }
+                });
+
             var marker = function(obj)
                     {                    
                     siteSelectionVectorLayer.getSource().clear();
@@ -2650,6 +2925,11 @@
 //                    console.log(obj.coordinate);       
 //                    console.log(coord4326);             
                     targetSiteLocation = coord4326;
+		    var btnTitle = ol.coordinate.toStringHDMS(coord4326);
+		    var lname = "";
+	            var nl = new SiteLocation("DD",targetSiteLocation[1],targetSiteLocation[0],lname);
+                    sls.push(nl);
+                $("#locations").append('<button type="button" value='+ noOfLocations +' id="'+ noOfLocations+'" class="btn btn-info">[ '+btnTitle +' ]</button><span class="divider"></span>');		
                     var  template = '[ {x} | {y} ]',
                         iconStyle = new ol.style.Style({
                           image: new ol.style.Icon({
@@ -2657,8 +2937,8 @@
                             src: url_marker
                           }),
                           text: new ol.style.Text({
-                            offsetY: 25,
-                            text: ol.coordinate.format(coord4326, template, 2),
+                            offsetY: 40,
+                            text: ol.coordinate.toStringHDMS(coord4326),   // ol.coordinate.format(coord4326, template, 2),
                             font: '15px Open Sans,sans-serif',
                             fill: new ol.style.Fill({ color: '#111' }),
                             stroke: new ol.style.Stroke({
@@ -2668,10 +2948,12 @@
                         }),
                     feature = new ol.Feature({
                           type: 'removable',
-                          geometry: new ol.geom.Point(obj.coordinate)
+                          geometry: new ol.geom.Point(obj.coordinate),
+			  id: noOfLocations
                         });
                       
                       feature.setStyle(iconStyle);
+		      feature.setId(noOfLocations++);
                       siteSelectionVectorLayer.getSource().addFeature(feature);
                     };
 
@@ -2690,6 +2972,60 @@
 
             map.addControl(contextmenu);
             
+		var removeMarker = function(obj){
+	             siteSelectionVectorLayer.getSource().removeFeature(obj.data.marker);
+                     };
+
+		var setLocationName = function(obj){
+			console.log(obj.data.marker.getId());
+			obj.data.marker.getStyle().getText().setText("Test");
+			currentLocationIndex = obj.data.marker.getId();
+			console.log("Current Location Index " + currentLocationIndex);	
+			var coordinate = obj.data.marker.getGeometry().getCoordinates();
+			var coord4326 = ol.proj.transform(coordinate, 'EPSG:3857', 'EPSG:4326');
+			//alert(coord4326);
+			overlay.setPosition(coordinate);
+			$("#ipLocationName").focus();
+//			currentLocationIndex = obj.data.marker.getId();
+			};
+
+
+                var removeMarkerItem = {
+	                text: 'Remove this Marker',
+                        icon: url_marker,
+                        callback: removeMarker
+                     };
+
+		var setLocationNameItem = {
+			text: 'Set Location Name',
+			icon: url_marker,
+			callback: setLocationName
+			};
+
+
+                contextmenu.on('open', function(evt){
+                      	var feature = map.forEachFeatureAtPixel(evt.pixel, function(ft, l){
+        	             return ft;
+	                     });
+
+			if (feature && feature.get('type') == 'removable') 
+				{
+	                      	contextmenu.clear();
+		                removeMarkerItem.data = {
+	                            marker: feature
+	                            };
+				setLocationNameItem.data = {marker : feature};    
+
+				contextmenu.push(setLocationNameItem);
+				contextmenu.push(removeMarkerItem);
+	                        } 
+			else 
+				{
+	                        contextmenu.clear();
+	                        contextmenu.extend(contextmenu_items);
+	                        contextmenu.extend(contextmenu.getDefaultItems());
+        	                }
+                    });
 
 
         </script>

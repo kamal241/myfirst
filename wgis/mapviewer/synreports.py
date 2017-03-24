@@ -479,7 +479,7 @@ def get_ww3_graph(wvalues,cats,wdirs):
 
     return d
 
-def weather_report_pdf(rloc,dt,tm,fname,sw_fname,hrsofst=0,dayfcst=2):#dc, weather_history, ww_hs,fname,sw_fname,rloc,dtm=None):
+def weather_report_pdf(rloc,dt,tm,fname,sw_fname,hrsofst=0,dayfcst=2,**kwargs):#dc, weather_history, ww_hs,fname,sw_fname,rloc,dtm=None):
     # and define a constant
     TABLE_WIDTH = 480 # this you cannot do in rLab which is why I wrote the helper initially
 	
@@ -490,19 +490,20 @@ def weather_report_pdf(rloc,dt,tm,fname,sw_fname,hrsofst=0,dayfcst=2):#dc, weath
 
     wind_data = get_gfs_data_at_lat_lon_idx(rloc[0],rloc[1],dt,tm,hrsfcst)
 #    print wind_data[0]
-    """
     sdt = dt
     stm = tm
+#    print dt,tm,type(dt),type(tm),sdt,stm,type(sdt),type(stm)
     if hrsofst>0:
 	    tdt = datetime.datetime.strptime(dt+tm,"%Y%m%d%H")
 	    ttd = datetime.timedelta(hours=-6)
 	    ndt = tdt + ttd
+#	    print ndt
 	    sdt = ndt.strftime("%Y%m%d")
 #    print sdt + "\n"
 	    stm=ndt.strftime("%H")
 #    print stm+"\n"
-    """
-    swell,seawave = get_ww3_data_at_lat_lon_idx(rloc[0],rloc[1],dt,tm,hrsfcst)
+#	    print sdt, stm
+    swell,seawave = get_ww3_data_at_lat_lon_idx(rloc[0],rloc[1],sdt,stm,hrsfcst,hrsofst)
 #    print len(wind_data),len(swell),len(seawave)
 #    print "SWELL"
 #    print swell
@@ -605,7 +606,10 @@ def weather_report_pdf(rloc,dt,tm,fname,sw_fname,hrsofst=0,dayfcst=2):#dc, weath
     doc.add_spacer()
 
     # Location Details
-    location_name = reports.Paragraph("Location : <b>Singapore</b>",MyTheme.paragraph)
+    loc_name = "Singapore"
+    if kwargs.has_key('lcname'):
+	loc_name = kwargs['lcname']
+    location_name = reports.Paragraph("Location : <b>%s</b>" % loc_name, MyTheme.paragraph)
     ln_dms, lt_dms = dd2dms(rloc[0]),dd2dms(rloc[1])
     ln_sym, lt_sym = 'E','N'
     if rloc[0]<0:
@@ -755,7 +759,7 @@ def weather_report_pdf(rloc,dt,tm,fname,sw_fname,hrsofst=0,dayfcst=2):#dc, weath
             if hsw2 == 999:
                 hsw2='*'    
             else:   
-                hsw1=round(hsw2,1)
+                hsw2=round(hsw2,1)
 
             if tsw2 == 999:
                 tsw2='*'    

@@ -55,7 +55,7 @@ def get_ws10prmsl(left,bottom,top,right,t,fv):
 #	print "\tProcessing Wind Speed"
 	##	Wind Speed
 	wspeed = np.sqrt(udata*udata + vdata*vdata) * 1.94384
-	ws_levs = range(0,51,5) + range(60,101,10)
+	ws_levs = range(0,51,5) #+ range(60,101,10)
 	wspeed_contoursf = contmap.contourf(x,y,wspeed,ws_levs,cmap=plt.cm.jet, alpha=.4)	
 	#	wspeed_contoursf = map.contourf(x[points],y[points],wspeed[points],cmap=plt.cm.jet, alpha=.5)
 	cb = contmap.colorbar(location='right', pad="10%")
@@ -129,7 +129,7 @@ def get_swh(left,bottom,top,right,t,fv,hrsofst=0):
         grbs.seek(0)
 
 	grb = grbs.select(name='Significant height of wind waves')[hrsofst]
-	print grb.validDate
+	print grb.validDate,grb.dataDate
 	data = grb.values
 	lats, lons = grb.latlons()
 
